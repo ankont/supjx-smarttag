@@ -1,0 +1,25 @@
+{
+    "name": "supersoft/plg-system-tagrouting",
+    "description": "Clean hierarchical faceted tag routing for Joomla 6",
+    "type": "joomla-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "SuperSoft\\Plugin\\System\\TagRouting\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SuperSoft\\Plugin\\System\\TagRouting\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}

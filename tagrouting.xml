@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+    <name>PLG_SYSTEM_TAGROUTING</name>
+    <author>SuperSoft</author>
+    <creationDate>2026-08</creationDate>
+    <copyright>(C) 2026 SuperSoft</copyright>
+    <license>GNU General Public License version 2 or later</license>
+    <version>1.5.0</version>
+    <description>PLG_SYSTEM_TAGROUTING_XML_DESCRIPTION</description>
+    <namespace path="src">SuperSoft\Plugin\System\TagRouting</namespace>
+    <files>
+        <folder plugin="tagrouting">services</folder>
+        <folder>src</folder>
+        <folder>language</folder>
+        <filename>README.md</filename>
+    </files>
+</extension>
