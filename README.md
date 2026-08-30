@@ -191,7 +191,7 @@ Run:
 powershell -ExecutionPolicy Bypass -File build/build.ps1
 ```
 
-Install `build/plg_system_tagrouting-v2.1.0.zip`, enable **System - Clean Tag Routing**, and configure **Routing Features**. The tested target is Joomla 5/6 with PHP 8.3 or later.
+Install `build/plg_system_tagrouting-v3.0.0.zip`, enable **System - Clean Tag Routing**, and configure **Routing Features**. The tested target is Joomla 5/6 with PHP 8.3 or later.
 
 For PHPUnit:
 
