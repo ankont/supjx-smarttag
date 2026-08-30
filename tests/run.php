@@ -23,6 +23,9 @@ use SuperSoft\Plugin\System\TagRouting\Domain\TagNode;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagPathResolver;
 use SuperSoft\Plugin\System\TagRouting\Menu\LogicalFilterState;
 use SuperSoft\Plugin\System\TagRouting\Routing\FacetDelimiter;
+use SuperSoft\Plugin\System\TagRouting\Configuration\RoutingFeatures;
+use SuperSoft\Plugin\System\TagRouting\Tag\TagHierarchyNode;
+use SuperSoft\Plugin\System\TagRouting\Tag\TagHierarchyResolver;
 
 $assertions = 0;
 $assert = static function (bool $condition, string $message) use (&$assertions): void {
@@ -97,6 +100,10 @@ $assert(
     'Logical menu state depended on ordering.',
 );
 $assert($states->from(['tags' => [42, 17], 'match_all' => 1])['groups'] === [[17], [42]], 'AND menu semantics failed.');
+$assert(
+    (new LogicalFilterState($serializer, false))->from([SerializedExpression::REQUEST_KEY => $serializer->encode(9, $nestedTags, $nestedTags, 'bible/parables')])['groups'] === [],
+    'Disabled faceting leaked serialized state into cleanup.',
+);
 
 $delimiter = new FacetDelimiter();
 $christmasNodes = [new TagNode(42, 'christmas', 10, 40, 41, 10)];
@@ -116,5 +123,39 @@ $assert($delimiter->extract(['filter', 'christmas']) === null, 'Bare filter alia
 $assert($delimiter->extract(['tag', 'christmas']) === null, 'Bare tag alias was accepted.');
 $assert($delimiter->extract(['!']) === null, 'Delimiter without a filter was accepted.');
 $assert($delimiter->extract(['unresolved', '!', 'christmas']) === null, 'Delimiter after an unresolved real route was accepted.');
+
+$defaults = RoutingFeatures::fromArray([]);
+$assert($defaults->canonicalCleanup && !$defaults->hierarchicalTags && $defaults->facetedCategories, 'Upgrade defaults changed existing behavior.');
+$assert($defaults->tagPrefix === 'tags', 'Default tag prefix changed.');
+
+for ($mask = 0; $mask < 8; ++$mask) {
+    $features = RoutingFeatures::fromArray([
+        'enable_cleanup' => (int) (bool) ($mask & 1),
+        'enable_hierarchical' => (int) (bool) ($mask & 2),
+        'enable_faceted' => (int) (bool) ($mask & 4),
+    ]);
+    $assert($features->canonicalCleanup === (bool) ($mask & 1), 'Cleanup toggle leaked into another feature.');
+    $assert($features->hierarchicalTags === (bool) ($mask & 2), 'Hierarchical toggle leaked into another feature.');
+    $assert($features->facetedCategories === (bool) ($mask & 4), 'Faceted toggle leaked into another feature.');
+    $assert($features->needsContentRouter() === (bool) ($mask & 5), 'Content router activation plan is wrong.');
+    $assert($features->needsSiteRules() === (bool) ($mask & 3), 'Site rule activation plan is wrong.');
+}
+
+$assert(RoutingFeatures::fromArray(['tag_url_prefix' => '/Topics/'])->tagPrefix === 'topics', 'Safe prefix was not normalized.');
+$assert(RoutingFeatures::fromArray(['tag_url_prefix' => '../unsafe'])->tagPrefix === 'tags', 'Unsafe prefix was accepted.');
+
+$tagTree = [
+    new TagHierarchyNode(102, 'theme', 1, 2, 9, '*'),
+    new TagHierarchyNode(103, 'bible', 102, 3, 8, '*'),
+    new TagHierarchyNode(104, 'parables', 103, 4, 5, '*'),
+    new TagHierarchyNode(105, 'other', 1, 10, 17, '*'),
+    new TagHierarchyNode(106, 'something', 105, 11, 16, '*'),
+    new TagHierarchyNode(107, 'parables', 106, 12, 13, '*'),
+];
+$tagResolver = new TagHierarchyResolver();
+$assert($tagResolver->resolve(['theme', 'bible', 'parables'], $tagTree, 'en-GB')?->id() === 104, 'Exact hierarchical tag did not resolve.');
+$assert($tagResolver->resolve(['other', 'something', 'parables'], $tagTree, 'en-GB')?->id() === 107, 'Duplicate alias branch was guessed incorrectly.');
+$assert($tagResolver->resolve(['theme', 'bible', 'does-not-exist'], $tagTree, 'en-GB') === null, 'Invalid tag path did not fail.');
+$assert($tagResolver->resolve(['parables'], $tagTree, 'en-GB') === null, 'Non-root first alias was accepted.');
 
 echo "OK ({$assertions} assertions)\n";

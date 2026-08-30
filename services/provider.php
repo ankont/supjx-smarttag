@@ -22,7 +22,9 @@ return new class implements ServiceProviderInterface {
                 (array) PluginHelper::getPlugin('system', 'tagrouting'),
             );
             $plugin->setApplication(Factory::getApplication());
-            $plugin->setSiteRouter($container->get(SiteRouter::class));
+            if ($container->has(SiteRouter::class)) {
+                $plugin->setSiteRouter($container->get(SiteRouter::class));
+            }
 
             return $plugin;
         });

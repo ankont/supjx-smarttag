@@ -8,8 +8,10 @@ use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
 
 final class LogicalFilterState
 {
-    public function __construct(private readonly SerializedExpression $serializer)
-    {
+    public function __construct(
+        private readonly SerializedExpression $serializer,
+        private readonly bool $allowFacetedState = true,
+    ) {
     }
 
     /**
@@ -18,7 +20,9 @@ final class LogicalFilterState
      */
     public function from(array $values, bool $isTagsComponent = false): array
     {
-        $serialized = $this->serializer->decode($values[SerializedExpression::REQUEST_KEY] ?? null);
+        $serialized = $this->allowFacetedState
+            ? $this->serializer->decode($values[SerializedExpression::REQUEST_KEY] ?? null)
+            : null;
 
         if ($serialized !== null) {
             $groups = $serialized['groups'];

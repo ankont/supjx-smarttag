@@ -10,6 +10,7 @@ use Joomla\CMS\Component\Router\Rules\MenuRules;
 use Joomla\CMS\Component\Router\Rules\NomenuRules;
 use Joomla\CMS\Menu\AbstractMenu;
 use Joomla\Database\DatabaseInterface;
+use SuperSoft\Plugin\System\TagRouting\Configuration\RoutingFeatures;
 use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser;
 use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagExpressionNormalizer;
@@ -32,15 +33,17 @@ final class Router extends \Joomla\Component\Content\Site\Service\Router
     ) {
         parent::__construct($app, $menu, $categoryFactory, $db);
 
+        $features = RoutingFeatures::fromPlugin();
         $serializer = new SerializedExpression();
-        $delimiter = new FacetDelimiter();
-        $contexts = new MenuTagContextResolver($menu, new LogicalFilterState($serializer));
+        $contexts = $features->canonicalCleanup
+            ? new MenuTagContextResolver($menu, new LogicalFilterState($serializer, $features->facetedCategories))
+            : null;
         $ordered = [];
 
         foreach ($this->getRules() as $rule) {
             $this->detachRule($rule);
 
-            if ($rule instanceof MenuRules) {
+            if ($features->canonicalCleanup && $rule instanceof MenuRules) {
                 $ordered[] = new CanonicalMenuRules($this, $contexts);
             } else {
                 $ordered[] = $rule;
@@ -50,7 +53,8 @@ final class Router extends \Joomla\Component\Content\Site\Service\Router
         foreach ($ordered as $rule) {
             $this->attachRule($rule);
 
-            if ($rule instanceof NomenuRules) {
+            if ($features->facetedCategories && $rule instanceof NomenuRules) {
+                $delimiter = new FacetDelimiter();
                 // Both StandardRules and NomenuRules must build the real category
                 // path before virtual segments are appended.
                 $this->attachRule(new FacetedBuildRule($serializer, $delimiter));

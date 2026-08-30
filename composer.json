@@ -1,6 +1,6 @@
 {
     "name": "supersoft/plg-system-tagrouting",
-    "description": "Clean hierarchical faceted tag routing for Joomla 5 and 6",
+    "description": "Modular canonical, hierarchical tag-page, and faceted routing for Joomla 5 and 6",
     "type": "joomla-plugin",
     "license": "GPL-2.0-or-later",
     "require": {

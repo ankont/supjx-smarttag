@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SuperSoft\Plugin\System\TagRouting\Routing;
 
 use Joomla\CMS\Factory;
+use SuperSoft\Plugin\System\TagRouting\Configuration\RoutingFeatures;
 use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
 
 final class FacetedRequest
@@ -17,6 +18,10 @@ final class FacetedRequest
      */
     public static function current(): ?array
     {
+        if (!RoutingFeatures::fromPlugin()->facetedCategories) {
+            return null;
+        }
+
         $value = Factory::getApplication()->getInput()->getString(SerializedExpression::REQUEST_KEY);
 
         return (new SerializedExpression())->decode($value);

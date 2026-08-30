@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SuperSoft\Plugin\System\TagRouting\Routing;
 
 use Joomla\CMS\Router\Route;
+use SuperSoft\Plugin\System\TagRouting\Configuration\RoutingFeatures;
 use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpression;
 use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagExpression;
@@ -18,6 +19,16 @@ final class FacetedRoute
      */
     public static function get(int $categoryId, FacetExpression|TagExpression $expression, ?int $itemId = null): string
     {
+        if (!RoutingFeatures::fromPlugin()->facetedCategories) {
+            $query = ['option' => 'com_content', 'view' => 'category', 'id' => $categoryId];
+
+            if ($itemId !== null) {
+                $query['Itemid'] = $itemId;
+            }
+
+            return Route::_($query);
+        }
+
         $serializer = new SerializedExpression();
         $public = $expression instanceof FacetExpression ? $expression->tags() : $expression;
         $canonical = $expression->expression();

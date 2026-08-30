@@ -28,4 +28,15 @@ final class LogicalFilterStateTest extends TestCase
 
         self::assertSame([[17], [42]], $state['groups']);
     }
+
+    public function testFacetedStateIsIgnoredWhenThatFeatureIsDisabled(): void
+    {
+        $serializer = new SerializedExpression();
+        $disabled = new LogicalFilterState($serializer, false);
+
+        self::assertSame(
+            ['groups' => [], 'extra' => []],
+            $disabled->from([SerializedExpression::REQUEST_KEY => '{"v":2}']),
+        );
+    }
 }

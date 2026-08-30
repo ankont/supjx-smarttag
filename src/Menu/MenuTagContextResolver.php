@@ -65,10 +65,6 @@ final class MenuTagContextResolver
                 unset($query[$key]);
             }
 
-            if ($isTags) {
-                unset($query['id']);
-            }
-
             return true;
         }
 
