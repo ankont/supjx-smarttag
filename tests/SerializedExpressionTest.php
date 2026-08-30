@@ -20,6 +20,7 @@ final class SerializedExpressionTest extends TestCase
         $decoded = $serializer->decode($serializer->encode(7, $expression, $expression));
 
         self::assertSame(7, $decoded['category']);
+        self::assertSame('christmas', $decoded['expression']);
         self::assertSame(['christmas'], $decoded['segments']);
         self::assertSame([[42]], $decoded['groups']);
         self::assertSame(10, $decoded['resolved'][0][0]['root']);
@@ -27,6 +28,6 @@ final class SerializedExpressionTest extends TestCase
 
     public function testMalformedClientStateIsRejected(): void
     {
-        self::assertNull((new SerializedExpression())->decode('{"v":1,"category":7,"groups":[[-1]]}'));
+        self::assertNull((new SerializedExpression())->decode('{"v":2,"category":7,"groups":[[-1]]}'));
     }
 }

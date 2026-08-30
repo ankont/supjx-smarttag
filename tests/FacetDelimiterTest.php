@@ -6,6 +6,7 @@ namespace SuperSoft\Plugin\System\TagRouting\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagNode;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagPathResolver;
 use SuperSoft\Plugin\System\TagRouting\Routing\FacetDelimiter;
@@ -32,7 +33,9 @@ final class FacetDelimiterTest extends TestCase
 
         self::assertNotNull($match);
         self::assertSame($canonical, $match['canonical']);
-        self::assertSame([[42]], (new TagPathResolver())->resolve($match['segments'], $nodes)?->ids());
+        $expression = (new FacetExpressionParser())->parse(implode('/', $match['segments']));
+        self::assertNotNull($expression);
+        self::assertSame([[42]], (new TagPathResolver())->resolve($expression, $nodes)?->tags()->ids());
         self::assertSame(['!', 'christmas'], $delimiter->canonicalSegments($match['segments']));
     }
 

@@ -6,6 +6,7 @@ namespace SuperSoft\Plugin\System\TagRouting\Routing;
 
 use Joomla\CMS\Application\SiteApplication;
 use Joomla\CMS\Component\Router\Rules\RulesInterface;
+use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser;
 use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagExpressionNormalizer;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagPathResolver;
@@ -16,6 +17,7 @@ final readonly class FacetedParseRule implements RulesInterface
     public function __construct(
         private SiteApplication $app,
         private CategoryTaxonomyResolver $taxonomies,
+        private FacetExpressionParser $expressions,
         private TagPathResolver $paths,
         private TagExpressionNormalizer $normalizer,
         private SerializedExpression $serializer,
@@ -62,23 +64,31 @@ final readonly class FacetedParseRule implements RulesInterface
             return;
         }
 
-        $public = $this->paths->resolve($delimiter['segments'], $scope['nodes']);
+        $rawExpression = implode('/', $delimiter['segments']);
+        $parsed = $this->expressions->parse($rawExpression);
+        $facets = $parsed === null ? null : $this->paths->resolve($parsed, $scope['nodes']);
 
-        if ($public === null) {
+        if ($facets === null) {
             // Leaving the segments untouched delegates failure to Joomla's normal
             // route-not-found handling instead of guessing an ambiguous tag.
             return;
         }
 
+        $public = $facets->tags();
         $effective = $this->normalizer->normalize($public);
 
         if ($effective->isEmpty()) {
             return;
         }
 
-        $vars[SerializedExpression::REQUEST_KEY] = $this->serializer->encode($categoryId, $public, $effective);
+        $vars[SerializedExpression::REQUEST_KEY] = $this->serializer->encode(
+            $categoryId,
+            $public,
+            $effective,
+            $facets->expression(),
+        );
 
-        if (!$delimiter['canonical']) {
+        if (!$delimiter['canonical'] || str_replace(' ', '+', trim($rawExpression)) !== $parsed->canonical) {
             // Joomla's SEF plugin rebuilds tainted parsed variables and issues the
             // canonical redirect; FacetedBuildRule always emits the short marker.
             $this->app->getRouter()->setTainted();

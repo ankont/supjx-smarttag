@@ -5,26 +5,27 @@ declare(strict_types=1);
 namespace SuperSoft\Plugin\System\TagRouting\Tests;
 
 use PHPUnit\Framework\TestCase;
+use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagExpressionNormalizer;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagNode;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagPathResolver;
 
 final class TagPathResolverTest extends TestCase
 {
-    public function testNestedPathUsesPrecedingBranchAndNormalizesAncestor(): void
+    public function testSlashResolvesOneHierarchicalPathToItsLeaf(): void
     {
         $resolver = new TagPathResolver();
-        $expression = $resolver->resolve(['bible', 'parables'], $this->nodes());
+        $expression = $resolver->resolve($this->parse('bible/parables'), $this->nodes());
 
         self::assertNotNull($expression);
-        self::assertSame([[2], [3]], $expression->ids());
-        self::assertSame([[3]], (new TagExpressionNormalizer())->normalize($expression)->ids());
-        self::assertSame(['bible', 'parables'], $expression->segments());
+        self::assertSame([[3]], $expression->tags()->ids());
+        self::assertSame([[3]], (new TagExpressionNormalizer())->normalize($expression->tags())->ids());
+        self::assertSame('bible/parables', $expression->expression());
     }
 
     public function testDuplicateFirstAliasFailsSafely(): void
     {
-        self::assertNull((new TagPathResolver())->resolve(['parables'], $this->nodes()));
+        self::assertNull((new TagPathResolver())->resolve($this->parse('parables'), $this->nodes()));
     }
 
     public function testMultipleRootsAndOrGroups(): void
@@ -36,11 +37,11 @@ final class TagPathResolverTest extends TestCase
             new TagNode(22, 'upper', 20, 14, 15, 20),
         ];
 
-        $expression = (new TagPathResolver())->resolve(['christmas+easter', 'lower+upper'], $nodes);
+        $expression = (new TagPathResolver())->resolve($this->parse('christmas,easter+lower,upper'), $nodes);
 
         self::assertNotNull($expression);
-        self::assertSame([[11, 12], [21, 22]], $expression->ids());
-        self::assertSame(['christmas+easter', 'lower+upper'], $expression->segments());
+        self::assertSame([[11, 12], [21, 22]], $expression->tags()->ids());
+        self::assertSame('christmas,easter+lower,upper', $expression->expression());
     }
 
     public function testLiteralPlusRestoredAfterJoomlaPathDecode(): void
@@ -50,7 +51,42 @@ final class TagPathResolverTest extends TestCase
             new TagNode(2, 'a3', 10, 4, 5, 10),
         ];
 
-        self::assertSame([[1, 2]], (new TagPathResolver())->resolve(['a2 a3'], $nodes)?->ids());
+        self::assertSame([[1], [2]], (new TagPathResolver())->resolve($this->parse('a2 a3'), $nodes)?->tags()->ids());
+    }
+
+    public function testSameChildAliasIsDisambiguatedByItsExplicitParentPath(): void
+    {
+        $nodes = [
+            new TagNode(1, 'preschool', 10, 2, 3, 10),
+            new TagNode(2, 'primary', 10, 4, 9, 10),
+            new TagNode(3, 'gymnasium', 2, 5, 6, 10),
+            new TagNode(4, 'secondary', 10, 10, 15, 10),
+            new TagNode(5, 'gymnasium', 4, 11, 12, 10),
+            new TagNode(6, 'math', 20, 20, 21, 20),
+        ];
+
+        $expression = (new TagPathResolver())->resolve(
+            $this->parse('preschool,primary/gymnasium,secondary/gymnasium+math'),
+            $nodes,
+        );
+
+        self::assertSame([[1, 3, 5], [6]], $expression?->tags()->ids());
+        self::assertSame(
+            [[1, 2, 5]],
+            (new TagPathResolver())->resolve(
+                $this->parse('preschool,primary,secondary/gymnasium'),
+                $nodes,
+            )?->tags()->ids(),
+        );
+        self::assertNull((new TagPathResolver())->resolve($this->parse('gymnasium'), $nodes));
+    }
+
+    private function parse(string $expression): \SuperSoft\Plugin\System\TagRouting\Domain\ParsedFacetExpression
+    {
+        $parsed = (new FacetExpressionParser())->parse($expression);
+        self::assertNotNull($parsed);
+
+        return $parsed;
     }
 
     /** @return list<TagNode> */

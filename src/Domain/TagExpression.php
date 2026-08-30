@@ -33,6 +33,11 @@ final readonly class TagExpression
     /** @return list<string> */
     public function segments(): array
     {
-        return array_map(static fn (TagGroup $group): string => $group->segment(), $this->groups);
+        return explode('/', $this->expression());
+    }
+
+    public function expression(): string
+    {
+        return implode('+', array_map(static fn (TagGroup $group): string => $group->segment(), $this->groups));
     }
 }

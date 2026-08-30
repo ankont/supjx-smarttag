@@ -10,6 +10,7 @@ use Joomla\CMS\Component\Router\Rules\MenuRules;
 use Joomla\CMS\Component\Router\Rules\NomenuRules;
 use Joomla\CMS\Menu\AbstractMenu;
 use Joomla\Database\DatabaseInterface;
+use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser;
 use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagExpressionNormalizer;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagPathResolver;
@@ -56,6 +57,7 @@ final class Router extends \Joomla\Component\Content\Site\Service\Router
                 $this->attachRule(new FacetedParseRule(
                     $app,
                     new CategoryTaxonomyResolver($db),
+                    new FacetExpressionParser(),
                     new TagPathResolver(),
                     new TagExpressionNormalizer(),
                     $serializer,

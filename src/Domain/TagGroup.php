@@ -38,6 +38,6 @@ final readonly class TagGroup
 
     public function segment(): string
     {
-        return implode('+', array_map(static fn (TagNode $tag): string => $tag->alias, $this->tags));
+        return implode(',', array_map(static fn (TagNode $tag): string => $tag->alias, $this->tags));
     }
 }

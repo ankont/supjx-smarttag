@@ -41,7 +41,7 @@ final readonly class FacetedBuildRule implements RulesInterface
             return;
         }
 
-        foreach ($this->delimiter->canonicalSegments($state['segments']) as $segment) {
+        foreach ($this->delimiter->canonicalSegments(explode('/', $state['expression'])) as $segment) {
             $segments[] = $segment;
         }
 

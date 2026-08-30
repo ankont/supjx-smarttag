@@ -20,15 +20,15 @@ This avoids parsing `REQUEST_URI`, replacing `com_content`, or duplicating categ
 The canonical syntax explicitly separates the real Joomla route from virtual tag filtering:
 
 ```text
-/category/path/!/tag1/tag2
+/category/path/!/tag1,tag2+tag3
 ```
 
 Examples:
 
 ```text
 /selections/seasonal/!/christmas
-/lessons/!/a2/math
-/lessons/!/a2+a3/math
+/lessons/!/secondary/gymnasium
+/lessons/!/a2,a3+math
 ```
 
 Everything before `!/` is resolved exclusively by Joomla. Everything after it is parsed exclusively as the faceted expression. A bare path such as `/category/christmas` is never interpreted as a tag filter.
@@ -48,17 +48,35 @@ They resolve to the same filter state, but are non-canonical. Joomla's SEF canon
 
 Bare `/filter/` and `/tag/` delimiters are deliberately unsupported.
 
-## Boolean grammar
+## Facet grammar
 
-`/` after the delimiter means AND. `+` inside one segment means OR:
+The v2 grammar uses three deliberately distinct separators:
 
 ```text
-/lessons/!/a2/math                 A2 AND Math
-/lessons/!/a2+a3/math              (A2 OR A3) AND Math
-/lessons/!/a2+a3/math+physics      (A2 OR A3) AND (Math OR Physics)
+/   hierarchy inside one tag path
+,   OR between alternative tag paths
++   AND between filter groups
 ```
 
-The resolver restores a literal `+` after Joomla's whole-path `urldecode()` behavior; it is not treated as query-string whitespace.
+OR alternatives form a group first; `+` then requires all groups. Parentheses are intentionally unsupported, keeping parsing, canonicalization and SQL filtering predictable:
+
+```text
+/lessons/!/secondary/gymnasium                 Secondary/Gymnasium
+/lessons/!/a2,a3+math                          (A2 OR A3) AND Math
+/lessons/!/a2,a3+math,physics                  (A2 OR A3) AND (Math OR Physics)
+/lessons/!/preschool,primary,secondary/gymnasium
+                                                Preschool OR Primary OR Secondary/Gymnasium
+```
+
+The formal grammar is:
+
+```text
+expression := group ("+" group)*
+group      := path ("," path)*
+path       := alias ("/" alias)*
+```
+
+The resolver restores a literal `+` after Joomla's whole-path `urldecode()` behavior; it is not treated as query-string whitespace. This is a breaking change from v1.5: `/` no longer means AND and `+` no longer means OR.
 
 ## Taxonomy configuration
 
@@ -76,7 +94,7 @@ valid routes include:
 
 ```text
 /seasonal/!/christmas
-/seasonal/!/christmas/lower
+/seasonal/!/christmas+lower
 ```
 
 The configured root may be at any depth in the global tag tree. A category without assigned tags remains an ordinary Joomla category. Configured root tags are boundaries; their descendants are the routable facets.
@@ -85,13 +103,19 @@ Resolution includes only published tags visible to the current user's access lev
 
 ## Hierarchical resolution
 
-Aliases after the delimiter use the preceding resolved tag branch as context. Thus:
+Aliases separated by `/` form one explicit hierarchical tag path. Thus:
 
 ```text
 /category/!/bible/parables
 ```
 
-selects `Parables` specifically below the already resolved `Bible`, even if another branch also contains a `parables` alias. If no descendant matches, resolution returns to the union of configured roots so a new facet can begin. An ambiguous alias is never guessed.
+selects `Parables` specifically below `Bible`, even if another branch also contains a `parables` alias. A path never silently jumps to another root: start a new AND group with `+` or an OR alternative with `,`. An ambiguous first alias is never guessed.
+
+Explicit parent paths also disambiguate identical child aliases:
+
+```text
+/category/!/primary/gymnasium,secondary/gymnasium
+```
 
 ## Public path and effective filter
 
@@ -102,7 +126,7 @@ Public:    /category/!/bible/parables
 Effective: Parables
 ```
 
-Within an OR group, `Ancestor OR Descendant` becomes `Ancestor`. Across AND groups, an ancestor group implied by a more specific group is removed. SQL uses `IN (...)` for OR and one correlated `EXISTS` per AND group.
+The visible parent path disambiguates the leaf but does not add a second SQL constraint. Within an OR group, `Ancestor OR Descendant` becomes `Ancestor`. Across AND groups, an ancestor group implied by a more specific group is removed. SQL uses `IN (...)` for OR and one correlated `EXISTS` per AND group.
 
 ## Separation from real Joomla routes
 
@@ -123,22 +147,35 @@ Recognized Joomla filter keys are `filter_tag`, `tags`, `tag_ids`, `com_tags` `i
 
 ## Building links
 
-Templates construct a resolved `TagExpression` and let Joomla build the URL:
+Templates construct resolved paths and let Joomla build the URL. The domain objects preserve the distinction between hierarchy (`/`) and Boolean grouping:
 
 ```php
+use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpression;
+use SuperSoft\Plugin\System\TagRouting\Domain\FacetGroup;
+use SuperSoft\Plugin\System\TagRouting\Domain\TagPath;
 use SuperSoft\Plugin\System\TagRouting\Routing\FacetedRoute;
 
+$expression = new FacetExpression([
+    new FacetGroup([
+        new TagPath([$preschool]),
+        new TagPath([$primary, $primaryGymnasium]),
+        new TagPath([$secondary, $secondaryGymnasium]),
+    ]),
+    new FacetGroup([new TagPath([$math])]),
+]);
+
 $url = FacetedRoute::get($categoryId, $expression, $itemId);
+// /category/!/preschool,primary/gymnasium,secondary/gymnasium+math
 ```
 
-`FacetedRoute` never concatenates aliases. The component router always emits the canonical `!/` delimiter. A template override can read structured request metadata with `FacetedRequest::current()`; the filtering layer separately revalidates all IDs against live taxonomy, publication, access, and language state.
+`FacetedRoute` never requires templates to concatenate aliases. It also continues to accept a flat `TagExpression` when no explicit hierarchy is needed. The component router always emits the canonical `!/` delimiter. A template override can read structured request metadata with `FacetedRequest::current()`; the filtering layer separately revalidates all IDs against live taxonomy, publication, access, and language state.
 
 ## Internal request state
 
 Parsed state is stored under the namespaced `__tagrouting` variable as versioned JSON containing:
 
 - category ID;
-- canonical public expression segments;
+- canonical public expression using `/`, `,`, and `+`;
 - normalized effective ID groups;
 - each resolved tag's ID, alias, and configured root ID.
 
@@ -146,7 +183,7 @@ The article model does not trust client-provided state: every tag ID is revalida
 
 ## Installation and development
 
-Run `build/build.ps1`, install `build/plg_system_tagrouting-v1.5.0.zip`, and enable **System - Clean Tag Routing**. The tested runtime target is Joomla 5/6 with PHP 8.3 or later.
+Run `build/build.ps1`, install `build/plg_system_tagrouting-v2.0.0.zip`, and enable **System - Clean Tag Routing**. The tested runtime target is Joomla 5/6 with PHP 8.3 or later.
 
 For PHPUnit:
 
@@ -167,11 +204,13 @@ php tests/run.php
 - Generated and redirected canonical URLs use `/category/!/christmas`.
 - Bare `/category/christmas`, `/category/filter/christmas`, and `/category/tag/christmas` never activate facets.
 - Simple and non-top-level taxonomy roots resolve.
-- Multiple roots resolve independent AND facets.
+- `,` resolves OR alternatives and `+` resolves independent AND groups.
 - Nested `!/bible/parables` remains public but filters only by `Parables`.
 - Duplicate aliases in other branches do not destabilize contextual paths.
+- Explicit parent paths distinguish the same child alias below different branches.
 - An ambiguous first tag alias fails safely.
-- One and two OR groups preserve literal `+` semantics.
+- Joomla-decoded spaces restore literal `+` AND semantics.
+- Parenthesized and malformed expressions fail safely.
 - Categories without roots use core routing only.
 - Real categories/articles before the delimiter use core routing.
 - Exact multi-tag menu states remove redundant parameters.
@@ -180,7 +219,7 @@ php tests/run.php
 
 ## Limitations
 
-- Boolean grammar is limited to OR within a segment and AND between segments; there is no NOT or parentheses.
+- The grammar supports positive AND-of-OR filters only; there is no NOT or parentheses.
 - Taxonomy roots are configuration boundaries and are not emitted as facet choices.
 - Site-specific custom menu filter keys require extending `LogicalFilterState`.
 - End-to-end router and SQL tests require a Joomla site/database. The bundled unit suite covers delimiters, canonical output, grammar, ambiguity, hierarchy, normalization, serialization, and logical menu state.

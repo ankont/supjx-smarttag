@@ -10,13 +10,20 @@ final class SerializedExpression
 {
     public const REQUEST_KEY = '__tagrouting';
 
-    public function encode(int $categoryId, TagExpression $public, TagExpression $effective): string
+    public function encode(
+        int $categoryId,
+        TagExpression $public,
+        TagExpression $effective,
+        ?string $canonicalExpression = null,
+    ): string
     {
+        $canonicalExpression ??= $public->expression();
+
         return json_encode(
             [
-                'v' => 1,
+                'v' => 2,
                 'category' => $categoryId,
-                'segments' => $public->segments(),
+                'expression' => $canonicalExpression,
                 'groups' => $effective->ids(),
                 'resolved' => array_map(
                     static fn (TagGroup $group): array => array_map(
@@ -35,7 +42,7 @@ final class SerializedExpression
     }
 
     /**
-     * @return array{category:int,segments:list<string>,groups:list<list<int>>,resolved:list<list<array{id:int,alias:string,root:int>>>}|null
+     * @return array{category:int,expression:string,segments:list<string>,groups:list<list<int>>,resolved:list<list<array{id:int,alias:string,root:int>>>}|null
      */
     public function decode(mixed $value): ?array
     {
@@ -49,35 +56,31 @@ final class SerializedExpression
             return null;
         }
 
-        if (!is_array($data) || ($data['v'] ?? null) !== 1 || !is_int($data['category'] ?? null)) {
+        if (!is_array($data) || ($data['v'] ?? null) !== 2 || !is_int($data['category'] ?? null)) {
             return null;
         }
 
-        $segments = $this->stringList($data['segments'] ?? null);
+        $expression = $data['expression'] ?? null;
         $groups = $this->integerGroups($data['groups'] ?? null);
         $resolved = $this->resolvedGroups($data['resolved'] ?? null);
 
-        if ($segments === null || $groups === null || $groups === [] || $resolved === null) {
+        if (!is_string($expression) || $expression === '' || strlen($expression) > 2048 || $groups === null || $groups === [] || $resolved === null) {
             return null;
         }
 
-        return ['category' => $data['category'], 'segments' => $segments, 'groups' => $groups, 'resolved' => $resolved];
-    }
+        $parsed = (new FacetExpressionParser())->parse($expression);
 
-    /** @return list<string>|null */
-    private function stringList(mixed $values): ?array
-    {
-        if (!is_array($values)) {
+        if ($parsed === null || $parsed->canonical !== $expression) {
             return null;
         }
 
-        foreach ($values as $value) {
-            if (!is_string($value) || $value === '' || strlen($value) > 255) {
-                return null;
-            }
-        }
-
-        return array_values($values);
+        return [
+            'category' => $data['category'],
+            'expression' => $expression,
+            'segments' => explode('/', $expression),
+            'groups' => $groups,
+            'resolved' => $resolved,
+        ];
     }
 
     /** @return list<list<int>>|null */

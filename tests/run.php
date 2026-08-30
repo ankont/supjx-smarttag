@@ -17,6 +17,7 @@ spl_autoload_register(static function (string $class): void {
 });
 
 use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
+use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagExpressionNormalizer;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagNode;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagPathResolver;
@@ -44,21 +45,50 @@ $nodes = [
 ];
 
 $resolver = new TagPathResolver();
-$nested = $resolver->resolve(['bible', 'parables'], $nodes);
-$assert($nested?->ids() === [[2], [3]], 'Contextual nested path did not resolve.');
-$assert((new TagExpressionNormalizer())->normalize($nested)->ids() === [[3]], 'Ancestor was not normalized.');
-$assert($nested->segments() === ['bible', 'parables'], 'Public hierarchy was shortened.');
-$assert($resolver->resolve(['parables'], $nodes) === null, 'Ambiguous first alias was guessed.');
+$parser = new FacetExpressionParser();
+$nestedSyntax = $parser->parse('bible/parables');
+$nested = $nestedSyntax === null ? null : $resolver->resolve($nestedSyntax, $nodes);
+$assert($nested?->tags()->ids() === [[3]], 'Hierarchical path did not resolve to its leaf.');
+$assert($nested?->expression() === 'bible/parables', 'Public hierarchy was shortened.');
+$assert((new TagExpressionNormalizer())->normalize($nested->tags())->ids() === [[3]], 'Leaf expression changed during normalization.');
+$ambiguous = $parser->parse('parables');
+$assert($ambiguous !== null && $resolver->resolve($ambiguous, $nodes) === null, 'Ambiguous first alias was guessed.');
 
-$boolean = $resolver->resolve(['a2+a3', 'math+physics'], $nodes);
-$assert($boolean?->ids() === [[11, 12], [21, 22]], 'OR/AND groups did not resolve.');
-$assert($resolver->resolve(['a2 a3'], $nodes)?->ids() === [[11, 12]], 'Literal plus restoration failed.');
+$booleanSyntax = $parser->parse('a2,a3+math,physics');
+$boolean = $booleanSyntax === null ? null : $resolver->resolve($booleanSyntax, $nodes);
+$assert($boolean?->tags()->ids() === [[11, 12], [21, 22]], 'OR/AND groups did not resolve.');
+$decodedPlus = $parser->parse('a2 a3');
+$assert($decodedPlus !== null && $resolver->resolve($decodedPlus, $nodes)?->tags()->ids() === [[11], [12]], 'Literal plus restoration failed.');
+$assert($parser->parse('(a2,a3)+math') === null, 'Parentheses were unexpectedly accepted.');
+$assert($parser->parse('a2,,a3') === null, 'Malformed OR expression was accepted.');
+
+$branchNodes = [
+    new TagNode(31, 'preschool', 30, 40, 41, 30),
+    new TagNode(32, 'primary', 30, 42, 47, 30),
+    new TagNode(33, 'gymnasium', 32, 43, 44, 30),
+    new TagNode(34, 'secondary', 30, 48, 53, 30),
+    new TagNode(35, 'gymnasium', 34, 49, 50, 30),
+];
+$branches = $parser->parse('preschool,primary/gymnasium,secondary/gymnasium');
+$assert(
+    $branches !== null && $resolver->resolve($branches, $branchNodes)?->tags()->ids() === [[31, 33, 35]],
+    'Explicit parent paths did not disambiguate duplicate child aliases.',
+);
+$expectedExample = $parser->parse('preschool,primary,secondary/gymnasium');
+$assert(
+    $expectedExample !== null && $resolver->resolve($expectedExample, $branchNodes)?->tags()->ids() === [[31, 32, 35]],
+    'Branch refinement changed unrelated OR alternatives.',
+);
+$bareChild = $parser->parse('gymnasium');
+$assert($bareChild !== null && $resolver->resolve($bareChild, $branchNodes) === null, 'Ambiguous child alias was guessed.');
 
 $serializer = new SerializedExpression();
-$decoded = $serializer->decode($serializer->encode(9, $nested, (new TagExpressionNormalizer())->normalize($nested)));
+$nestedTags = $nested->tags();
+$decoded = $serializer->decode($serializer->encode(9, $nestedTags, (new TagExpressionNormalizer())->normalize($nestedTags), $nested->expression()));
 $assert($decoded['category'] === 9 && $decoded['groups'] === [[3]], 'Expression round-trip failed.');
+$assert($decoded['expression'] === 'bible/parables', 'Canonical expression was lost.');
 $assert($decoded['resolved'][0][0]['root'] === 1, 'Taxonomy root metadata was lost.');
-$assert($serializer->decode('{"v":1,"category":9,"groups":[[-1]]}') === null, 'Malformed state was accepted.');
+$assert($serializer->decode('{"v":2,"category":9,"groups":[[-1]]}') === null, 'Malformed state was accepted.');
 
 $states = new LogicalFilterState($serializer);
 $assert(
@@ -75,7 +105,8 @@ $resolvedStates = [];
 foreach ([['!', 'christmas'], ['!filter', 'christmas'], ['!tag', 'christmas']] as $input) {
     $match = $delimiter->extract($input);
     $assert($match !== null, 'Accepted delimiter form was rejected.');
-    $resolvedStates[] = $resolver->resolve($match['segments'], $christmasNodes)?->ids();
+    $syntax = $parser->parse(implode('/', $match['segments']));
+    $resolvedStates[] = $syntax === null ? null : $resolver->resolve($syntax, $christmasNodes)?->tags()->ids();
     $assert($delimiter->canonicalSegments($match['segments']) === ['!', 'christmas'], 'Delimiter did not build canonically.');
 }
 
