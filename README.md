@@ -4,7 +4,7 @@ A reusable Joomla 5/6 system plugin with three independently configurable routin
 
 ## Routing features
 
-The **Routing Features** fieldset exposes three Joomla switchers:
+The standard **Plugin** tab exposes three Joomla switchers:
 
 | Feature | Upgrade/default value | Responsibility |
 |---|---:|---|
@@ -191,7 +191,7 @@ Run:
 powershell -ExecutionPolicy Bypass -File build/build.ps1
 ```
 
-Install `build/plg_system_tagrouting-v3.0.0.zip`, enable **System - Clean Tag Routing**, and configure **Routing Features**. The tested target is Joomla 5/6 with PHP 8.3 or later.
+Install `build/plg_system_tagrouting-v3.0.1.zip`, enable **System - Clean Tag Routing**, and configure its routing features in the standard **Plugin** tab. The tested target is Joomla 5/6 with PHP 8.3 or later.
 
 For PHPUnit:
 

@@ -70,13 +70,18 @@ final class TagHierarchyRepository
         }
 
         $target = $this->node($targetRow);
+        // DatabaseInterface::bind() accepts its value by reference. Readonly
+        // object properties cannot be passed by reference, so bind local
+        // scalar copies of the nested-set bounds instead.
+        $targetLft = $target->lft;
+        $targetRgt = $target->rgt;
         $query = $this->baseQuery($viewLevels, $language)
             ->where($this->db->quoteName('t.lft') . ' <= :targetLft')
             ->where($this->db->quoteName('t.rgt') . ' >= :targetRgt')
             ->where($this->db->quoteName('t.id') . ' <> 1')
             ->order($this->db->quoteName('t.lft'))
-            ->bind(':targetLft', $target->lft, ParameterType::INTEGER)
-            ->bind(':targetRgt', $target->rgt, ParameterType::INTEGER);
+            ->bind(':targetLft', $targetLft, ParameterType::INTEGER)
+            ->bind(':targetRgt', $targetRgt, ParameterType::INTEGER);
 
         $this->db->setQuery($query);
         $nodes = array_map($this->node(...), $this->db->loadObjectList() ?: []);
