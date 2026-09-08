@@ -49,4 +49,14 @@ final class FacetDelimiterTest extends TestCase
         self::assertNull($delimiter->extract(['!']));
         self::assertNull($delimiter->extract(['unresolved-real-route', '!', 'christmas']));
     }
+
+    public function testConfiguredAcceptedAndCanonicalMarkersAreUsed(): void
+    {
+        $delimiter = new FacetDelimiter(['!tag', '!facet'], '!facet');
+
+        self::assertNull($delimiter->extract(['!', 'christmas']));
+        self::assertFalse($delimiter->extract(['!tag', 'christmas'])['canonical']);
+        self::assertTrue($delimiter->extract(['!facet', 'christmas'])['canonical']);
+        self::assertSame(['!facet', 'christmas'], $delimiter->canonicalSegments(['christmas']));
+    }
 }

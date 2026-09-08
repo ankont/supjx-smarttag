@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="component" method="upgrade">
+    <name>COM_TAGROUTING</name>
+    <element>com_tagrouting</element>
+    <author>SuperSoft</author>
+    <creationDate>2026-09</creationDate>
+    <copyright>(C) 2026 SuperSoft</copyright>
+    <license>GNU General Public License version 2 or later</license>
+    <version>1.0.0</version>
+    <description>COM_TAGROUTING_XML_DESCRIPTION</description>
+    <namespace path="src">SuperSoft\Component\TagRouting</namespace>
+    <files folder="site">
+        <folder>src</folder>
+        <folder>tmpl</folder>
+    </files>
+    <languages folder="site/language">
+        <language tag="en-GB" client="site">en-GB/com_tagrouting.ini</language>
+        <language tag="en-GB" client="site">en-GB/com_tagrouting.sys.ini</language>
+    </languages>
+    <administration>
+        <files folder="administrator">
+            <folder>services</folder>
+            <folder>src</folder>
+        </files>
+        <languages folder="administrator/language">
+            <language tag="en-GB" client="administrator">en-GB/com_tagrouting.ini</language>
+            <language tag="en-GB" client="administrator">en-GB/com_tagrouting.sys.ini</language>
+        </languages>
+    </administration>
+</extension>

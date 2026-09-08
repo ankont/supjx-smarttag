@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metadata>
+    <layout title="COM_TAGROUTING_TAG_PAGES_MENU_TITLE">
+        <message>COM_TAGROUTING_TAG_PAGES_MENU_DESC</message>
+    </layout>
+    <fields name="params">
+        <fieldset name="advanced">
+            <field
+                name="use_menu_route_canonical"
+                type="radio"
+                layout="joomla.form.field.radio.switcher"
+                default="1"
+                label="COM_TAGROUTING_FIELD_USE_MENU_CANONICAL_LABEL"
+                description="COM_TAGROUTING_FIELD_USE_MENU_CANONICAL_DESC"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+        </fieldset>
+    </fields>
+</metadata>

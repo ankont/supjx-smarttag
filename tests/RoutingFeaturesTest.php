@@ -9,14 +9,16 @@ use SuperSoft\Plugin\System\TagRouting\Configuration\RoutingFeatures;
 
 final class RoutingFeaturesTest extends TestCase
 {
-    public function testUpgradeDefaultsPreserveExistingFeaturesAndKeepNewNamespaceOptIn(): void
+    public function testUpgradeDefaultsPreserveExistingFeaturesAndKeepStandaloneRoutingOptIn(): void
     {
         $features = RoutingFeatures::fromArray([]);
 
         self::assertTrue($features->canonicalCleanup);
         self::assertFalse($features->hierarchicalTags);
         self::assertTrue($features->facetedCategories);
-        self::assertSame('tags', $features->tagPrefix);
+        self::assertSame(['!', '!tag', '!filter'], $features->acceptedMarkers);
+        self::assertSame('!', $features->canonicalMarker);
+        self::assertSame('#', $features->breadcrumbMarker);
     }
 
     public function testAllEightFeatureCombinationsRemainIndependent(): void
@@ -39,10 +41,26 @@ final class RoutingFeaturesTest extends TestCase
         }
     }
 
-    public function testPrefixIsOneSafeSegment(): void
+    public function testMarkersAreValidatedAndCanonicalMustBeAccepted(): void
     {
-        self::assertSame('topics', RoutingFeatures::fromArray(['tag_url_prefix' => '/Topics/'])->tagPrefix);
-        self::assertSame('tags', RoutingFeatures::fromArray(['tag_url_prefix' => '../unsafe'])->tagPrefix);
-        self::assertSame('tags', RoutingFeatures::fromArray(['tag_url_prefix' => 'two/segments'])->tagPrefix);
+        $custom = RoutingFeatures::fromArray([
+            'accepted_markers' => ['!tag'],
+            'enable_custom_marker' => 1,
+            'custom_marker' => '/!Facet/',
+            'canonical_marker' => '__custom__',
+        ]);
+        self::assertSame(['!tag', '!facet'], $custom->acceptedMarkers);
+        self::assertSame('!facet', $custom->canonicalMarker);
+
+        $fallback = RoutingFeatures::fromArray([
+            'accepted_markers' => ['!filter'],
+            'canonical_marker' => '!',
+            'enable_custom_marker' => 1,
+            'custom_marker' => '../unsafe',
+        ]);
+        self::assertSame(['!filter'], $fallback->acceptedMarkers);
+        self::assertSame('!filter', $fallback->canonicalMarker);
+        self::assertSame(['!'], RoutingFeatures::fromArray(['accepted_markers' => []])->acceptedMarkers);
+        self::assertSame('', RoutingFeatures::fromArray(['breadcrumb_marker' => ''])->breadcrumbMarker);
     }
 }

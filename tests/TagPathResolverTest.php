@@ -81,6 +81,19 @@ final class TagPathResolverTest extends TestCase
         self::assertNull((new TagPathResolver())->resolve($this->parse('gymnasium'), $nodes));
     }
 
+    public function testSlashRequiresEachActualParentChildStep(): void
+    {
+        $nodes = [
+            new TagNode(20, 'root', 1, 1, 8, 20),
+            new TagNode(21, 'middle', 20, 2, 7, 20),
+            new TagNode(22, 'leaf', 21, 3, 4, 20),
+        ];
+        $resolver = new TagPathResolver();
+
+        self::assertNotNull($resolver->resolve($this->parse('root/middle/leaf'), $nodes));
+        self::assertNull($resolver->resolve($this->parse('root/leaf'), $nodes));
+    }
+
     private function parse(string $expression): \SuperSoft\Plugin\System\TagRouting\Domain\ParsedFacetExpression
     {
         $parsed = (new FacetExpressionParser())->parse($expression);

@@ -1,154 +1,204 @@
-# System - Clean Tag Routing
+# SuperSoftJx - SmartTag
 
-A reusable Joomla 5/6 system plugin with three independently configurable routing features. It modifies no Joomla core files, creates no component, and renders no landing-page content.
+A Joomla 5/6 suite for structured tag selection, deterministic hierarchical tag routing, and menu-aware tag pages. Version 4 installs three extensions:
+
+- `plg_system_tagrouting`: routing, canonicalization, tag resolution, faceted filtering, public route APIs, request state, and breadcrumbs.
+- `plg_fields_tagselect`: the **SmartTag Select** custom-field type, with branch scoping, optional native Joomla-tag storage, leaf-only selection, and controlled tag creation.
+- `com_tagrouting`: the lightweight **SUPJX Tag Pages** menu item type used only for Joomla `Itemid`, template/Gantry, module, language, and optional canonical-base context.
+
+The three extensions are packaged together but remain operationally independent. SmartTag Select does not require the routing feature to render or save a field, and routing does not require a SmartTag Select field. The component never replaces `com_tags`, selects a tag, or renders a tag landing page. Valid standalone routes always resolve to the normal Joomla `com_tags` tag view and existing template overrides.
+
+## Source and package structure
+
+```text
+package/
+├── pkg_smarttag.xml
+├── components/com_tagrouting/
+├── plugins/fields/tagselect/
+└── plugins/system/tagrouting/
+```
+
+The build creates three constituent ZIPs and wraps them in one installable package:
+
+```text
+build/output/pkg_smarttag_v4.0.0.zip
+```
+
+The internal identities remain `system/tagrouting`, `fields/tagselect`, and `com_tagrouting`. Installing the package therefore upgrades existing standalone copies instead of creating duplicates or losing their saved parameters and custom fields. Each extension keeps its own meaningful release line:
+
+| Extension | Version in this package |
+|---|---:|
+| `pkg_smarttag` | 4.0.0 |
+| `plg_system_tagrouting` | 4.0.0 |
+| `plg_fields_tagselect` | 1.7.0 |
+| `com_tagrouting` | 1.0.0 |
+
+## SmartTag Select custom field
+
+After installation, enable **Fields - SuperSoftJx - SmartTag Select** and create a Joomla custom field of type **Tag Select**. The field can either store an independent custom-field value or act as a controlled editor for the item's native Joomla tags. Its field options include:
+
+- all tags, selected hierarchy branches, or all except selected branches;
+- searchable AJAX or nested-tree selection;
+- optional leaf-only selection and single/multiple values;
+- controlled creation of new tags;
+- automatic frontend output as linked tags or plain text.
+
+When native tag handling is used, the plugin updates only the subset managed by that field and preserves unrelated native tags on the item. Existing `tagselect` fields continue to use the same field type and stored configuration after migration into the package.
 
 ## Routing features
 
-The standard **Plugin** tab exposes three Joomla switchers:
+The plugin's standard **Plugin** tab keeps three independent feature switches:
 
-| Feature | Upgrade/default value | Responsibility |
+| Feature | Upgrade/default | Responsibility |
 |---|---:|---|
-| Canonical cleanup | On | Removes redundant tag/type/language filter state when an exact Joomla menu item already represents it. |
-| Hierarchical tag URLs | Off | Adds canonical normal `com_tags` pages below a configurable prefix. |
-| Faceted category filters | On | Adds explicit grouped tag filters below `com_content` category routes. |
+| Canonical cleanup | On | Removes redundant Joomla tag/type/language query state when an exact menu item already represents it. |
+| Hierarchical standalone tag URLs | Off | Resolves standalone hierarchical tag pages through a Tag Pages menu route or a marker route. |
+| Faceted category filters | On | Filters one real `com_content` category with a hierarchical tag expression. |
 
-Cleanup and faceting default to On because they existed before these settings were introduced. Hierarchical tag URLs default to Off because enabling a new top-level namespace can conflict with an existing menu alias. Missing parameters on an upgraded installation receive these same compatibility defaults.
+All eight combinations remain supported. A disabled feature attaches no corresponding routing rules, state, redirects, or breadcrumb behavior.
 
-Every combination is supported, including all features Off. A disabled feature attaches no related rule, adds no related state, and does not change its URLs.
+## SUPJX Tag Pages menu item
 
-## A. Canonical cleanup
+Create a menu item of type **SUPJX Tag Pages**. It represents no particular tag and has no tag selector. Its full Joomla menu route is an explicit standalone namespace boundary.
 
-When generated Joomla state exactly matches a menu item, redundant public variables are removed and the real menu route is used:
-
-```text
-/life/a1.html?types[0]=1&tag_list_language_filter=el-GR
-→ /life/a1.html
-```
-
-`MenuTagContextResolver` compares normalized tag groups and recognized filter state. `CanonicalMenuRules` handles `com_content`; `GenericMenuBuildRule` covers the site router and `com_tags`. Disabling **Canonical cleanup** leaves normal Joomla menu selection and query output untouched.
-
-## B. Hierarchical Joomla tag pages
-
-Enable **Hierarchical tag URLs** to expose normal Joomla `com_tags` tag views under **Tag URL prefix**. The default prefix is one safe segment, `tags`, stored without slashes:
+Examples:
 
 ```text
-/tags/christmas
-/tags/series/pame-ekklisia
-/tags/theme/bible/parables
+Tag Pages item route: /tags
+/tags/age-group/secondary/gymnasium.html
+
+Nested Tag Pages item route: /menu-a/menu-b/tags
+/menu-a/menu-b/tags/age-group/secondary/gymnasium.html
 ```
 
-Changing the prefix to `topics` changes generated and resolved URLs to `/topics/...`. Invalid multi-segment or unsafe values fall back to `tags` at runtime.
+Parent menu items may point to content categories; that does not change the meaning. The actual `com_tagrouting` menu item is authoritative, so everything after its full route is a standalone tag hierarchy, never a faceted category expression.
 
-These routes render the standard `com_tags` `tag` view. The plugin does not redirect to articles, provide landing-page fields, duplicate `com_tags`, or add content-source logic.
+### Use menu route as canonical URL
 
-### Exact hierarchy resolution
+The menu item's advanced option defaults to **Yes**.
 
-The path must begin at a real root-level Joomla tag (`parent_id = 1`). Every following alias is resolved only as a direct child of the previously resolved tag:
+- **Yes:** its full route becomes the canonical base for standalone tag pages. The marker form is still accepted as an alternate/fallback and can canonicalize to the menu form on safe GET/HEAD requests.
+- **No:** the item supplies `Itemid`, Gantry/template assignment, module assignment, and language context only. The public canonical URL remains marker-based.
+
+For example, a hidden `/tags` item with the option set to **No** supplies internal context while the public canonical URL remains:
 
 ```text
-Theme
-└── Bible
-    └── Parables
-
-/tags/theme/bible/parables
+/!/age-group/secondary/gymnasium.html
 ```
 
-If another branch also contains `parables`, it does not compete with this path. Missing, inaccessible, unpublished, wrong-language, non-rooted, or ambiguous paths fail with Joomla's normal 404; the resolver never guesses.
+No numeric Itemid is configured in the plugin. It automatically prefers a Tag Pages item in the current language and falls back to an All Languages item.
 
-Parsing uses one alias-set query rather than one query per segment. Building by ID loads the target and its nested-set ancestor chain, with request-level caches for repeated paths and IDs.
+## Standalone tag routes
 
-### Menu and multilingual context
-
-A dedicated menu item is not required. The parse rule sets ordinary Joomla state:
+Both forms below express the same standalone tag intent:
 
 ```text
-option=com_tags
-view=tag
-id[]=<resolved tag ID>
+/!/age-group/secondary/gymnasium.html
+/tags/age-group/secondary/gymnasium.html
 ```
 
-If an accessible language-compatible exact tag menu item exists, it is used internally for module/template context; otherwise a generic root `com_tags` tags item may be used. Neither `Itemid` nor the menu route becomes part of the canonical public path. With no suitable item, normal `com_tags` rendering still works through the component state.
+The first is the deterministic root-marker form. The second is available only when `/tags` is the full route of a real SUPJX Tag Pages menu item. With no suitable menu item, the canonical standalone form uses the configured canonical marker.
 
-Language Filter prefixes are preserved by Joomla. Published state, view access, tag language, SEF suffix, rewrite mode, and the current language are respected.
+Resolution is strictly parent-to-child:
 
-### Canonical generation and redirects
+```text
+Age Group
+└── Secondary
+    └── Gymnasium
+```
 
-When the feature is enabled, generated single-tag `com_tags` routes are marked before the core component router runs and rewritten after Joomla has selected its language/menu context. The public result always uses the configured hierarchical prefix.
+`secondary` resolves only beneath the resolved `age-group`, and `gymnasium` only beneath that `secondary`. Duplicate aliases in other branches do not compete. Invalid, inaccessible, unpublished, wrong-language, non-rooted, or ambiguous paths return Joomla's normal 404; no global alias guessing occurs.
 
-Existing inbound Joomla/menu tag URLs outside that namespace remain Joomla routes and are not forcibly redirected. This avoids redirect loops and preserves established menu URLs. Inside the configured namespace, redundant routing query remnants can use Joomla's tainted-route canonical redirect on safe GET requests. Invalid hierarchy always produces 404 instead of a redirect or fallback.
+## Faceted category routes
 
-Other code can request a canonical tag-page URL by ID:
+A real category before the marker changes the intent to category filtering:
+
+```text
+/selections/!/age-group/secondary/gymnasium.html
+```
+
+This means: render the Joomla content category represented by `/selections`, filtered by the resolved tag expression. It is not a standalone tag page.
+
+The expression grammar remains:
+
+```text
+/   hierarchy inside a tag path
+,   OR between alternative paths
++   AND between groups
+```
+
+Examples:
+
+```text
+/lessons/!/grade/a2/math
+/lessons/!/grade/a2,grade/a3
+/lessons/!/grade/a2,grade/a3+subject/math
+```
+
+The last example means `(A2 OR A3) AND Math`. Parentheses and NOT remain intentionally unsupported. Category-assigned tags define the permitted taxonomy roots, and every incoming ID is revalidated against live publication, access, language, and category scope before the content query is extended.
+
+The plugin never globally converts `com_tags + catid` into faceted routing. Link intent is selected where the link is created.
+
+## Routing markers
+
+The plugin accepts any enabled combination of these built-in marker segments:
+
+- `!`
+- `!tag`
+- `!filter`
+- one optional custom marker beginning with `!`
+
+**Canonical routing marker** chooses the single marker generated by both standalone fallback URLs and faceted category URLs. It must be enabled; malformed legacy or manually edited settings safely fall back to an enabled marker. Defaults preserve the previous behavior: all three built-ins are accepted and `!` is canonical.
+
+The marker always means “virtual tag-routing information starts here.” Context before it determines the intent:
+
+```text
+/!/age-group/secondary
+    standalone tag page
+
+/selections/!/age-group/secondary
+    faceted filtering within /selections
+```
+
+Bare `/tag/` and `/filter/` are never markers.
+
+## Breadcrumb hierarchy
+
+After Joomla dispatches the real component, the plugin appends the exact resolved hierarchy to its pathway. The independent **Breadcrumb tag marker** is `#` by default and may be blank.
+
+Faceted example:
+
+```text
+Home / Selections / # / Age Group / Secondary / Gymnasium
+```
+
+Intermediate tag links remain faceted inside the same category. Standalone breadcrumbs instead use standalone tag routes for every intermediate level. If a filter expression contains multiple OR alternatives or AND groups, the plugin leaves Joomla's category breadcrumb unchanged because such an expression has no truthful single linear ancestor chain.
+
+## Public route APIs
+
+Templates and helpers should never assemble URLs manually.
+
+Standalone route from a tag ID:
 
 ```php
-use SuperSoft\Plugin\System\TagRouting\Routing\TagPageRoute;
+use SuperSoft\Plugin\System\TagRouting\Routing\TagRoute;
 
-$url = TagPageRoute::get($tagId, $language);
+$url = TagRoute::forTag($tagId, $language);
 ```
 
-When the feature is disabled, this API returns Joomla's ordinary `com_tags` route and no hierarchical build rule runs.
+The router chooses the canonical menu or marker base and applies the appropriate internal menu context. The previous `TagPageRoute::get()` entry point remains as a compatibility alias.
 
-## C. Faceted category routing
-
-Faceted routes remain a separate grammar below a real `com_content` category route:
-
-```text
-/selections/seasonal/!/christmas
-/lessons/!/a2/math
-/lessons/!/a2,a3/math
-/lessons/!/a2,a3+math
-```
-
-Everything before `!/` is resolved exclusively by Joomla. Everything after it is a virtual tag-filter expression:
-
-```text
-/   hierarchy inside one tag path
-,   OR between alternative tag paths
-+   AND between filter groups
-```
-
-Therefore:
-
-```text
-a2/math       = the hierarchical tag A2/Math
-a2,a3/math    = A2 OR A3/Math
-a2,a3+math    = (A2 OR A3) AND Math
-```
-
-The formal grammar is intentionally limited and has no parentheses or NOT:
-
-```text
-expression := group ("+" group)*
-group      := path ("," path)*
-path       := alias ("/" alias)*
-```
-
-The canonical delimiter is `/!/`. Input aliases `/!filter/` and `/!tag/` remain accepted, but generated/canonical URLs always use `/!/`. Bare `/filter/`, `/tag/`, or unmarked tag paths never activate faceting.
-
-Category-assigned tags define the permitted taxonomy roots for this feature only. The custom `ArticlesModel` uses `IN (...)` for OR inside a group and one correlated `EXISTS` per AND group. Every serialized ID is revalidated against live publication, access, language, and category taxonomy state before SQL is extended.
-
-### Faceted public API and current state
-
-Templates build resolved paths without concatenating aliases:
+Faceted route from a category ID and tag ID:
 
 ```php
-use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpression;
-use SuperSoft\Plugin\System\TagRouting\Domain\FacetGroup;
-use SuperSoft\Plugin\System\TagRouting\Domain\TagPath;
 use SuperSoft\Plugin\System\TagRouting\Routing\FacetedRoute;
 
-$expression = new FacetExpression([
-    new FacetGroup([
-        new TagPath([$preschool]),
-        new TagPath([$primary, $primaryGymnasium]),
-        new TagPath([$secondary, $secondaryGymnasium]),
-    ]),
-    new FacetGroup([new TagPath([$math])]),
-]);
-
-$url = FacetedRoute::get($categoryId, $expression, $itemId);
+$url = FacetedRoute::forTag($categoryId, $tagId, $itemId, $language);
 ```
 
-The normalized current state remains available through:
+This resolves the tag's full hierarchy inside the category's permitted taxonomy scope and starts directly from `com_content`; it does not create `/tags/...?...catid=` URLs.
+
+Advanced callers may continue to use `FacetedRoute::get()` with a normalized `FacetExpression`. Current resolved faceted state remains available through:
 
 ```php
 use SuperSoft\Plugin\System\TagRouting\Routing\FacetedRequest;
@@ -156,63 +206,58 @@ use SuperSoft\Plugin\System\TagRouting\Routing\FacetedRequest;
 $state = FacetedRequest::current();
 ```
 
-It is stored internally as versioned JSON under `__tagrouting`, containing category ID, canonical public expression, normalized effective ID groups, and resolved ID/alias/root metadata.
+## Canonical cleanup
 
-## Two different URL schemes
-
-```text
-/tags/series/pame-ekklisia
-```
-
-is the Joomla page of the `Series > Pame Ekklisia` tag itself.
+The independent cleanup feature retains existing behavior. When Joomla-generated filter state exactly matches a menu item, redundant parameters are removed:
 
 ```text
-/selections/series/!/pame-ekklisia
+/life/a1.html?types[0]=1&tag_list_language_filter=el-GR
+→ /life/a1.html
 ```
 
-is a faceted filter applied inside the real `/selections/series` content category. The `/tags/` and `/!/` grammars are independent and never fall back into each other.
+Disabling cleanup leaves normal Joomla menu selection and query output untouched.
 
-## Architecture
+## Upgrade notes from standalone extensions and SmartTag Routing 3.x
 
-- `Extension/TagRouting` is the feature-aware coordinator.
-- `Configuration/RoutingFeatures` owns defaults and safe prefix normalization.
-- Cleanup uses `CanonicalMenuRules`, `GenericMenuBuildRule`, and the `Menu` helpers.
-- Hierarchical tag pages use three site rules (`PrepareBuild`, `Parse`, `Build`), `TagHierarchyRepository`, `TagHierarchyResolver`, and `TagMenuContextResolver`.
-- Faceting remains in its component rules, domain expression objects, category taxonomy resolver, request serializer, and model overlay.
-- The custom `com_content` router is registered only for cleanup and/or faceting. The MVC model overlay is registered only for faceting.
-
-This follows Joomla's supported system-plugin router-rule and component-router extension patterns. It does not parse `REQUEST_URI`, patch core components, or copy component rendering.
+- Install the v4 **SmartTag package**, not either standalone plugin ZIP.
+- The existing `system/tagrouting` record and saved feature toggles are retained.
+- The existing `fields/tagselect` record, custom fields, values, and field parameters are retained.
+- Enable each plugin independently after a fresh installation. An already enabled child plugin remains enabled when upgraded.
+- The old textual **Tag URL prefix** setting is removed.
+- A previous `/tags/...` path is a standalone route only after creating a SUPJX Tag Pages menu item whose actual full route is `/tags`.
+- Without that menu item, standalone routes use the canonical marker, `/!/...` by default.
+- Hierarchical standalone routing remains Off by default for installations that never saved the setting; cleanup and faceting remain On.
 
 ## Installation and development
 
-Run:
+Build on Windows with:
 
 ```text
 powershell -ExecutionPolicy Bypass -File build/build.ps1
 ```
 
-Install `build/plg_system_tagrouting-v3.0.1.zip`, enable **System - Clean Tag Routing**, and configure its routing features in the standard **Plugin** tab. The tested target is Joomla 5/6 with PHP 8.3 or later.
+Install `build/output/pkg_smarttag_v4.0.0.zip`. Enable **System - SuperSoftJx - SmartTag Routing** for routing features and **Fields - SuperSoftJx - SmartTag Select** wherever the custom field type is needed. Configure routing in the system plugin's **Plugin** tab, and create a **SUPJX Tag Pages** menu item if menu-aware standalone context is desired.
 
-For PHPUnit:
+Tests:
 
 ```text
 composer install
 composer test
 ```
 
-Without Composer:
+or without Composer:
 
 ```text
 php tests/run.php
 ```
 
-The dependency-free suite covers all eight feature combinations, compatibility defaults, prefix validation, exact hierarchy and duplicate aliases, invalid paths, faceted grammar, normalization, serialization, delimiter aliases, and menu-state comparison.
+The dependency-free suite covers feature isolation, compatibility defaults, configurable markers, strict hierarchy and duplicate aliases, nested menu boundaries, faceted grammar, normalization, serialization, and menu-state comparison. End-to-end component dispatch, SEF redirects, module assignments, and multilingual menu behavior still require verification on a real Joomla installation.
 
 ## Intentional limitations
 
-- `/tags` without a tag path is not supplied as a custom all-tags landing page.
-- Hierarchical tag pages support one tag per page; native multi-tag `com_tags` views remain Joomla routes.
-- Existing non-prefix Joomla tag URLs are not globally redirected.
+- The bare SUPJX Tag Pages menu route has no landing-page renderer and returns 404 without a tag path.
+- Standalone pages represent one tag; native multi-tag `com_tags` views remain ordinary Joomla routes.
+- Compound AND/OR filters do not receive a misleading linear tag breadcrumb.
+- Existing non-marker `com_tags` routes are not globally redirected.
 - Faceted expressions support positive AND-of-OR groups only; no parentheses or NOT.
-- A configured prefix intentionally owns that top-level namespace while the feature is enabled, so administrators should avoid a conflicting menu alias.
-- End-to-end module assignment, web-server rewrite, database SQL, and multilingual redirect behavior require testing on a real Joomla site; unit tests cover the isolated decisions and resolvers.
+- If several SUPJX Tag Pages items exist for the same language, the lowest Itemid is the deterministic context/canonical default; use one such item per language when possible.

@@ -9,7 +9,7 @@ spl_autoload_register(static function (string $class): void {
         return;
     }
 
-    $path = dirname(__DIR__) . '/src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
+    $path = dirname(__DIR__) . '/package/plugins/system/tagrouting/src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
 
     if (is_file($path)) {
         require $path;
@@ -26,6 +26,8 @@ use SuperSoft\Plugin\System\TagRouting\Routing\FacetDelimiter;
 use SuperSoft\Plugin\System\TagRouting\Configuration\RoutingFeatures;
 use SuperSoft\Plugin\System\TagRouting\Tag\TagHierarchyNode;
 use SuperSoft\Plugin\System\TagRouting\Tag\TagHierarchyResolver;
+use SuperSoft\Plugin\System\TagRouting\Tag\StandaloneMenuContext;
+use SuperSoft\Plugin\System\TagRouting\Tag\StandaloneMenuSelector;
 
 $assertions = 0;
 $assert = static function (bool $condition, string $message) use (&$assertions): void {
@@ -126,7 +128,9 @@ $assert($delimiter->extract(['unresolved', '!', 'christmas']) === null, 'Delimit
 
 $defaults = RoutingFeatures::fromArray([]);
 $assert($defaults->canonicalCleanup && !$defaults->hierarchicalTags && $defaults->facetedCategories, 'Upgrade defaults changed existing behavior.');
-$assert($defaults->tagPrefix === 'tags', 'Default tag prefix changed.');
+$assert($defaults->acceptedMarkers === ['!', '!tag', '!filter'], 'Default accepted markers changed.');
+$assert($defaults->canonicalMarker === '!', 'Default canonical marker changed.');
+$assert($defaults->breadcrumbMarker === '#', 'Default breadcrumb marker changed.');
 
 for ($mask = 0; $mask < 8; ++$mask) {
     $features = RoutingFeatures::fromArray([
@@ -141,8 +145,40 @@ for ($mask = 0; $mask < 8; ++$mask) {
     $assert($features->needsSiteRules() === (bool) ($mask & 3), 'Site rule activation plan is wrong.');
 }
 
-$assert(RoutingFeatures::fromArray(['tag_url_prefix' => '/Topics/'])->tagPrefix === 'topics', 'Safe prefix was not normalized.');
-$assert(RoutingFeatures::fromArray(['tag_url_prefix' => '../unsafe'])->tagPrefix === 'tags', 'Unsafe prefix was accepted.');
+$customMarkers = RoutingFeatures::fromArray([
+    'accepted_markers' => ['!tag'],
+    'enable_custom_marker' => 1,
+    'custom_marker' => '/!Facet/',
+    'canonical_marker' => '__custom__',
+]);
+$assert($customMarkers->acceptedMarkers === ['!tag', '!facet'], 'Custom accepted marker was not normalized.');
+$assert($customMarkers->canonicalMarker === '!facet', 'Custom canonical marker was not selected.');
+$markerFallback = RoutingFeatures::fromArray(['accepted_markers' => ['!filter'], 'canonical_marker' => '!']);
+$assert($markerFallback->canonicalMarker === '!filter', 'Disabled canonical marker did not fall back safely.');
+$configuredDelimiter = new FacetDelimiter(['!tag', '!facet'], '!facet');
+$assert($configuredDelimiter->extract(['!', 'christmas']) === null, 'Disabled marker remained accepted.');
+$assert($configuredDelimiter->extract(['!tag', 'christmas'])['canonical'] === false, 'Alias marker became canonical.');
+$assert($configuredDelimiter->canonicalSegments(['christmas']) === ['!facet', 'christmas'], 'Configured canonical marker was ignored.');
+
+$menuSelector = new StandaloneMenuSelector();
+$menuContexts = [
+    new StandaloneMenuContext(10, 'tags', '*', true),
+    new StandaloneMenuContext(20, 'menu-a/menu-b/tags', 'el-GR', false),
+];
+$assert($menuSelector->best($menuContexts, 'el-GR')?->itemId === 20, 'Current-language Tag Pages item was not preferred.');
+$assert(
+    $menuSelector->match(['menu-a', 'menu-b', 'tags', 'age-group'], $menuContexts, 'el-GR')?->itemId === 20,
+    'Full nested Tag Pages route was not treated as the namespace boundary.',
+);
+$strictNodes = [
+    new TagNode(201, 'root', 1, 1, 8, 201),
+    new TagNode(202, 'middle', 201, 2, 7, 201),
+    new TagNode(203, 'leaf', 202, 3, 4, 201),
+];
+$strictPath = $parser->parse('root/middle/leaf');
+$skippedPath = $parser->parse('root/leaf');
+$assert($strictPath !== null && $resolver->resolve($strictPath, $strictNodes)?->tags()->ids() === [[203]], 'Exact parent-child path failed.');
+$assert($skippedPath !== null && $resolver->resolve($skippedPath, $strictNodes) === null, 'Skipped hierarchy level was accepted.');
 
 $tagTree = [
     new TagHierarchyNode(102, 'theme', 1, 2, 9, '*'),
