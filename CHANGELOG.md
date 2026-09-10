@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.2.0 — 2026-09-10
+
+- Added configurable title and icon fields to the virtual tag-root menu page, defaulting to `Φίλτρο` and `fas fa-filter`.
+- Exposed the configured values to native `com_tags` template overrides as `supjx_virtual_root_title` and `supjx_virtual_root_icon`.
+- Updated the independently versioned context component to 1.2.0.
+
 ## 4.1.5 — 2026-09-10
 
 - Added an explicit breadcrumb-marker visibility switch so administrators can reliably remove the marker even when Joomla restores the text field's default value.

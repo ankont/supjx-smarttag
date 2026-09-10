@@ -17,6 +17,22 @@
                 <option value="all_tags">COM_TAGROUTING_LANDING_PAGE_ALL_TAGS</option>
                 <option value="empty">COM_TAGROUTING_LANDING_PAGE_EMPTY</option>
             </field>
+            <field
+                name="landing_title"
+                type="text"
+                default="Φίλτρο"
+                label="COM_TAGROUTING_FIELD_LANDING_TITLE_LABEL"
+                description="COM_TAGROUTING_FIELD_LANDING_TITLE_DESC"
+                showon="landing_page:virtual_root"
+            />
+            <field
+                name="landing_icon"
+                type="text"
+                default="fas fa-filter"
+                label="COM_TAGROUTING_FIELD_LANDING_ICON_LABEL"
+                description="COM_TAGROUTING_FIELD_LANDING_ICON_DESC"
+                showon="landing_page:virtual_root"
+            />
         </fieldset>
         <fieldset name="advanced">
             <field

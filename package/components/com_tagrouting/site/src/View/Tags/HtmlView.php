@@ -15,6 +15,10 @@ final class HtmlView extends BaseHtmlView
 {
     public Registry $params;
 
+    public string $landingTitle = '';
+
+    public string $landingIcon = '';
+
     public function display($tpl = null): void
     {
         $app = Factory::getApplication();
@@ -34,9 +38,20 @@ final class HtmlView extends BaseHtmlView
         $app = Factory::getApplication();
         $params = clone ComponentHelper::getParams('com_tags');
         $params->merge($this->params);
+        $this->landingTitle = trim((string) $params->get('landing_title', 'Φίλτρο'));
+        $this->landingIcon = $this->normaliseIconClass((string) $params->get('landing_icon', 'fas fa-filter'));
+
+        if ($this->landingTitle === '') {
+            $this->landingTitle = 'Φίλτρο';
+        }
+
         $params->set('supjx_virtual_root', 1);
+        $params->set('supjx_virtual_root_title', $this->landingTitle);
+        $params->set('supjx_virtual_root_icon', $this->landingIcon);
         $params->set('show_tag_title', 0);
         $params->set('show_feed_link', 0);
+
+        echo $this->loadTemplate('heading');
 
         $app->getLanguage()->load('com_tags', JPATH_SITE);
         $this->getDocument()->getWebAssetManager()->getRegistry()->addExtensionRegistryFile('com_tags');
@@ -72,5 +87,16 @@ final class HtmlView extends BaseHtmlView
                 $active->query = $originalQuery;
             }
         }
+    }
+
+    private function normaliseIconClass(string $icon): string
+    {
+        $classes = preg_split('/\s+/', trim($icon)) ?: [];
+        $classes = array_values(array_filter(
+            $classes,
+            static fn (string $class): bool => $class !== '' && preg_match('/^[A-Za-z0-9_-]+$/', $class) === 1,
+        ));
+
+        return $classes === [] ? 'fas fa-filter' : implode(' ', $classes);
     }
 }

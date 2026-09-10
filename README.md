@@ -21,17 +21,17 @@ package/
 The build creates three constituent ZIPs and wraps them in one installable package:
 
 ```text
-build/output/pkg_smarttag_v4.1.5.zip
+build/output/pkg_smarttag_v4.2.0.zip
 ```
 
 The internal identities remain `system/tagrouting`, `fields/tagselect`, and `com_tagrouting`. Installing the package therefore upgrades existing standalone copies instead of creating duplicates or losing their saved parameters and custom fields. Each extension keeps its own meaningful release line:
 
 | Extension | Version in this package |
 |---|---:|
-| `pkg_smarttag` | 4.1.5 |
+| `pkg_smarttag` | 4.2.0 |
 | `plg_system_tagrouting` | 4.0.4 |
 | `plg_fields_tagselect` | 1.7.0 |
-| `com_tagrouting` | 1.1.4 |
+| `com_tagrouting` | 1.2.0 |
 
 ## SmartTag Select custom field
 
@@ -63,7 +63,7 @@ Create a menu item of type **SUPJX Tag Pages**. It represents no particular tag 
 
 The **Page to display** option controls only the bare menu route:
 
-- **Virtual tag root (default):** renders Joomla's native `com_tags` tag view with no selected tag and zero content results. It uses the normal `html/com_tags/tag` template overrides and exposes `supjx_virtual_root=1` in the view parameters, allowing an override to render the top-level tag hierarchy.
+- **Virtual tag root (default):** renders Joomla's native `com_tags` tag view with no selected tag and zero content results. Its configurable page title and icon default to `Φίλτρο` and `fas fa-filter`. It uses the normal `html/com_tags/tag` template overrides and exposes `supjx_virtual_root=1`, `supjx_virtual_root_title`, and `supjx_virtual_root_icon` in the view parameters, allowing an override to render the top-level tag hierarchy.
 - **Top-level tags:** dispatches Joomla's native `com_tags` all-tags view with its root parent selected, so only top-level tags are listed. Its tag links pass through SmartTag routing and open the corresponding standalone hierarchical tag pages. Those pages are rendered by Joomla's native `com_tags` tag view and retain normal template-override support.
 - **All tags:** dispatches the same native Joomla all-tags view without a parent restriction, preserving Joomla's standard flat list of every published tag.
 - **Empty — routing context only:** renders an unfiltered component shell with standard Joomla page-heading support. Templates, modules, and page builders can provide the visible library content.
@@ -251,7 +251,7 @@ Build on Windows with:
 powershell -ExecutionPolicy Bypass -File build/build.ps1
 ```
 
-Install `build/output/pkg_smarttag_v4.1.5.zip`. Enable **System - SuperSoftJx - SmartTag Routing** for routing features and **Fields - SuperSoftJx - SmartTag Select** wherever the custom field type is needed. Configure routing in the system plugin's **Plugin** tab, and create a **SUPJX Tag Pages** menu item if menu-aware standalone context is desired.
+Install `build/output/pkg_smarttag_v4.2.0.zip`. Enable **System - SuperSoftJx - SmartTag Routing** for routing features and **Fields - SuperSoftJx - SmartTag Select** wherever the custom field type is needed. Configure routing in the system plugin's **Plugin** tab, and create a **SUPJX Tag Pages** menu item if menu-aware standalone context is desired.
 
 Tests:
 
