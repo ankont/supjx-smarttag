@@ -6,7 +6,7 @@
     <creationDate>2026-09</creationDate>
     <copyright>(C) 2026 SuperSoft</copyright>
     <license>GNU General Public License version 2 or later</license>
-    <version>4.2.0</version>
+    <version>4.2.1</version>
     <description>PKG_SMARTTAG_XML_DESCRIPTION</description>
     <blockChildUninstall>true</blockChildUninstall>
     <files folder="packages">

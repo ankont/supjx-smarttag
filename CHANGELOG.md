@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.2.1 — 2026-09-10
+
+- Removed the component-rendered virtual-root heading so the delegated `com_tags/tag` override remains the single owner of the page heading.
+- Retained the configured title and icon in the `supjx_virtual_root_title` and `supjx_virtual_root_icon` view parameters.
+- Updated the independently versioned context component to 1.2.1.
+
 ## 4.2.0 — 2026-09-10
 
 - Added configurable title and icon fields to the virtual tag-root menu page, defaulting to `Φίλτρο` and `fas fa-filter`.

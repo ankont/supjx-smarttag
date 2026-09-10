@@ -51,8 +51,6 @@ final class HtmlView extends BaseHtmlView
         $params->set('show_tag_title', 0);
         $params->set('show_feed_link', 0);
 
-        echo $this->loadTemplate('heading');
-
         $app->getLanguage()->load('com_tags', JPATH_SITE);
         $this->getDocument()->getWebAssetManager()->getRegistry()->addExtensionRegistryFile('com_tags');
         $component = $app->bootComponent('com_tags');

@@ -21,17 +21,17 @@ package/
 The build creates three constituent ZIPs and wraps them in one installable package:
 
 ```text
-build/output/pkg_smarttag_v4.2.0.zip
+build/output/pkg_smarttag_v4.2.1.zip
 ```
 
 The internal identities remain `system/tagrouting`, `fields/tagselect`, and `com_tagrouting`. Installing the package therefore upgrades existing standalone copies instead of creating duplicates or losing their saved parameters and custom fields. Each extension keeps its own meaningful release line:
 
 | Extension | Version in this package |
 |---|---:|
-| `pkg_smarttag` | 4.2.0 |
+| `pkg_smarttag` | 4.2.1 |
 | `plg_system_tagrouting` | 4.0.4 |
 | `plg_fields_tagselect` | 1.7.0 |
-| `com_tagrouting` | 1.2.0 |
+| `com_tagrouting` | 1.2.1 |
 
 ## SmartTag Select custom field
 
@@ -251,7 +251,7 @@ Build on Windows with:
 powershell -ExecutionPolicy Bypass -File build/build.ps1
 ```
 
-Install `build/output/pkg_smarttag_v4.2.0.zip`. Enable **System - SuperSoftJx - SmartTag Routing** for routing features and **Fields - SuperSoftJx - SmartTag Select** wherever the custom field type is needed. Configure routing in the system plugin's **Plugin** tab, and create a **SUPJX Tag Pages** menu item if menu-aware standalone context is desired.
+Install `build/output/pkg_smarttag_v4.2.1.zip`. Enable **System - SuperSoftJx - SmartTag Routing** for routing features and **Fields - SuperSoftJx - SmartTag Select** wherever the custom field type is needed. Configure routing in the system plugin's **Plugin** tab, and create a **SUPJX Tag Pages** menu item if menu-aware standalone context is desired.
 
 Tests:
 
