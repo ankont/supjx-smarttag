@@ -18,7 +18,6 @@ use Joomla\Event\SubscriberInterface;
 use SuperSoft\Plugin\System\TagRouting\Configuration\RoutingFeatures;
 use SuperSoft\Plugin\System\TagRouting\Breadcrumb\BreadcrumbManager;
 use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
-use SuperSoft\Plugin\System\TagRouting\Infrastructure\CategoryTaxonomyResolver;
 use SuperSoft\Plugin\System\TagRouting\Menu\LogicalFilterState;
 use SuperSoft\Plugin\System\TagRouting\Menu\MenuTagContextResolver;
 use SuperSoft\Plugin\System\TagRouting\Routing\GenericMenuBuildRule;
@@ -37,13 +36,13 @@ final class TagRouting extends CMSPlugin implements SubscriberInterface, SiteRou
     use SiteRouterAwareTrait;
 
     private ?TagHierarchyRepository $tagRepository = null;
-    private ?CategoryTaxonomyResolver $taxonomyRepository = null;
 
     public static function getSubscribedEvents(): array
     {
         return [
             'onAfterExtensionBoot' => 'onAfterExtensionBoot',
             'onAfterInitialise' => 'onAfterInitialise',
+            'onAfterRoute' => 'onAfterRoute',
             'onAfterDispatch' => 'onAfterDispatch',
         ];
     }
@@ -89,7 +88,6 @@ final class TagRouting extends CMSPlugin implements SubscriberInterface, SiteRou
         }
 
         $router = $this->getSiteRouter();
-
         if ($features->hierarchicalTags) {
             $repository = $this->tags();
             $menus = new StandaloneMenuContextResolver($app->getMenu(), new StandaloneMenuSelector());
@@ -136,11 +134,46 @@ final class TagRouting extends CMSPlugin implements SubscriberInterface, SiteRou
 
         $features = RoutingFeatures::fromRegistry($this->params);
 
-        if (!$features->hierarchicalTags && !$features->facetedCategories) {
+        if (!$features->hierarchicalTags) {
             return;
         }
 
-        (new BreadcrumbManager($app, $features, $this->tags(), $this->taxonomies()))->apply();
+        (new BreadcrumbManager($app, $features, $this->tags()))->apply();
+    }
+
+    public function onAfterRoute(Event $event): void
+    {
+        $app = $this->getApplication();
+
+        if (!$app->isClient('site')) {
+            return;
+        }
+
+        $input = $app->getInput();
+
+        if ($input->getCmd('option') !== 'com_tagrouting' || $input->getCmd('view', 'tags') !== 'tags') {
+            return;
+        }
+
+        $active = $app->getMenu()->getActive();
+
+        if ($active === null) {
+            return;
+        }
+
+        $landingPage = (string) $active->getParams()->get('landing_page', 'virtual_root');
+
+        if (!in_array($landingPage, ['top_level_tags', 'all_tags'], true)) {
+            return;
+        }
+
+        // Keep the SUPJX menu item active for Itemid, modules, template, and
+        // page context while dispatching Joomla's native all-tags view. Core
+        // TagsModel treats parent_id=1 as the direct children of its root tag;
+        // parent_id=0 leaves the hierarchy unrestricted.
+        $input->set('option', 'com_tags');
+        $input->set('view', 'tags');
+        $input->set('parent_id', $landingPage === 'top_level_tags' ? 1 : 0);
     }
 
     private function tags(): TagHierarchyRepository
@@ -148,13 +181,6 @@ final class TagRouting extends CMSPlugin implements SubscriberInterface, SiteRou
         return $this->tagRepository ??= new TagHierarchyRepository(
             Factory::getContainer()->get(DatabaseInterface::class),
             new TagHierarchyResolver(),
-        );
-    }
-
-    private function taxonomies(): CategoryTaxonomyResolver
-    {
-        return $this->taxonomyRepository ??= new CategoryTaxonomyResolver(
-            Factory::getContainer()->get(DatabaseInterface::class),
         );
     }
 }

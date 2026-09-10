@@ -4,6 +4,20 @@
         <message>COM_TAGROUTING_TAG_PAGES_MENU_DESC</message>
     </layout>
     <fields name="params">
+        <fieldset name="basic">
+            <field
+                name="landing_page"
+                type="list"
+                default="virtual_root"
+                label="COM_TAGROUTING_FIELD_LANDING_PAGE_LABEL"
+                description="COM_TAGROUTING_FIELD_LANDING_PAGE_DESC"
+            >
+                <option value="virtual_root">COM_TAGROUTING_LANDING_PAGE_VIRTUAL_ROOT</option>
+                <option value="top_level_tags">COM_TAGROUTING_LANDING_PAGE_TOP_LEVEL_TAGS</option>
+                <option value="all_tags">COM_TAGROUTING_LANDING_PAGE_ALL_TAGS</option>
+                <option value="empty">COM_TAGROUTING_LANDING_PAGE_EMPTY</option>
+            </field>
+        </fieldset>
         <fieldset name="advanced">
             <field
                 name="use_menu_route_canonical"
@@ -12,6 +26,17 @@
                 default="1"
                 label="COM_TAGROUTING_FIELD_USE_MENU_CANONICAL_LABEL"
                 description="COM_TAGROUTING_FIELD_USE_MENU_CANONICAL_DESC"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+            <field
+                name="bind_root_marker"
+                type="radio"
+                layout="joomla.form.field.radio.switcher"
+                default="1"
+                label="COM_TAGROUTING_FIELD_BIND_ROOT_MARKER_LABEL"
+                description="COM_TAGROUTING_FIELD_BIND_ROOT_MARKER_DESC"
             >
                 <option value="0">JNO</option>
                 <option value="1">JYES</option>

@@ -51,6 +51,7 @@ final class StandaloneMenuContextResolver
                 (string) ($item->route ?? ''),
                 (string) ($item->language ?? '*'),
                 (bool) (int) ($params instanceof Registry ? $params->get('use_menu_route_canonical', 1) : 1),
+                (bool) (int) ($params instanceof Registry ? $params->get('bind_root_marker', 1) : 1),
             );
         }
 

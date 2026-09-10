@@ -14,12 +14,16 @@ use SuperSoft\Plugin\System\TagRouting\Tag\TagHierarchyRepository;
 
 final readonly class StandaloneTagBuildRule
 {
+    private StandaloneTagQueryCleaner $queryCleaner;
+
     public function __construct(
         private SiteApplication $app,
         private TagHierarchyRepository $tags,
         private StandaloneMenuContextResolver $menus,
         private FacetDelimiter $markers,
+        ?StandaloneTagQueryCleaner $queryCleaner = null,
     ) {
+        $this->queryCleaner = $queryCleaner ?? new StandaloneTagQueryCleaner();
     }
 
     public function __invoke(SiteRouter &$router, Uri &$uri): void
@@ -60,16 +64,12 @@ final readonly class StandaloneTagBuildRule
         }
 
         $context = $this->menus->find($language);
-        $base = $context !== null && $context->useMenuRouteAsCanonical && $context->routeSegments !== []
+        $base = $context !== null && $context->usesMenuRoute()
             ? $context->routeSegments
             : [$this->markers->canonical()];
         array_push($canonical, ...$base, ...$resolved->aliases());
         $uri->setPath(implode('/', $canonical));
 
-        foreach (['option', 'view', 'id', 'Itemid', 'layout'] as $key) {
-            unset($query[$key]);
-        }
-
-        $uri->setQuery($query);
+        $uri->setQuery($this->queryCleaner->clean($query));
     }
 }

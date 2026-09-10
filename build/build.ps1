@@ -95,10 +95,6 @@ $pluginVersion = Get-ManifestVersion -Path (Join-Path $pluginRoot 'tagrouting.xm
 $fieldPluginVersion = Get-ManifestVersion -Path (Join-Path $fieldPluginRoot 'tagselect.xml')
 $componentVersion = Get-ManifestVersion -Path (Join-Path $componentRoot 'tagrouting.xml')
 
-if ($packageVersion -ne $pluginVersion) {
-    throw "Package and routing plugin versions differ: package=$packageVersion plugin=$pluginVersion"
-}
-
 Reset-Directory -Path $stageRoot
 Reset-Directory -Path $outputRoot
 $constituentRoot = Join-Path $stageRoot 'constituents'

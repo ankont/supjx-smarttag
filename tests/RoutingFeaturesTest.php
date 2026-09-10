@@ -62,5 +62,9 @@ final class RoutingFeaturesTest extends TestCase
         self::assertSame('!filter', $fallback->canonicalMarker);
         self::assertSame(['!'], RoutingFeatures::fromArray(['accepted_markers' => []])->acceptedMarkers);
         self::assertSame('', RoutingFeatures::fromArray(['breadcrumb_marker' => ''])->breadcrumbMarker);
+        self::assertSame('', RoutingFeatures::fromArray([
+            'show_breadcrumb_marker' => 0,
+            'breadcrumb_marker' => '#',
+        ])->breadcrumbMarker);
     }
 }

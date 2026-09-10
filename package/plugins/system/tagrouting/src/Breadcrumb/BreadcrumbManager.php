@@ -6,15 +6,6 @@ namespace SuperSoft\Plugin\System\TagRouting\Breadcrumb;
 
 use Joomla\CMS\Application\SiteApplication;
 use SuperSoft\Plugin\System\TagRouting\Configuration\RoutingFeatures;
-use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpression;
-use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser;
-use SuperSoft\Plugin\System\TagRouting\Domain\FacetGroup;
-use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
-use SuperSoft\Plugin\System\TagRouting\Domain\TagNode;
-use SuperSoft\Plugin\System\TagRouting\Domain\TagPath;
-use SuperSoft\Plugin\System\TagRouting\Domain\TagPathResolver;
-use SuperSoft\Plugin\System\TagRouting\Infrastructure\CategoryTaxonomyResolver;
-use SuperSoft\Plugin\System\TagRouting\Routing\FacetedRoute;
 use SuperSoft\Plugin\System\TagRouting\Routing\TagPageState;
 use SuperSoft\Plugin\System\TagRouting\Routing\TagRoute;
 use SuperSoft\Plugin\System\TagRouting\Tag\ResolvedTagPage;
@@ -26,18 +17,13 @@ final readonly class BreadcrumbManager
         private SiteApplication $app,
         private RoutingFeatures $features,
         private TagHierarchyRepository $tags,
-        private CategoryTaxonomyResolver $taxonomies,
     ) {
     }
 
     public function apply(): void
     {
-        if ($this->features->hierarchicalTags && $this->applyStandalone()) {
-            return;
-        }
-
-        if ($this->features->facetedCategories) {
-            $this->applyFaceted();
+        if ($this->features->hierarchicalTags) {
+            $this->applyStandalone();
         }
     }
 
@@ -66,54 +52,14 @@ final readonly class BreadcrumbManager
         foreach ($resolved->path as $index => $node) {
             $this->app->getPathway()->addItem(
                 $node->title !== '' ? $node->title : $node->alias,
-                $index === $last ? '' : TagRoute::forTag($node->id, $this->app->getLanguage()->getTag()),
+                // This is navigation inside the current request language. An
+                // explicit lang would leak into monolingual URLs when Joomla's
+                // Language Filter plugin is disabled.
+                $index === $last ? '' : TagRoute::forTag($node->id),
             );
         }
 
         return true;
-    }
-
-    private function applyFaceted(): void
-    {
-        $state = (new SerializedExpression())->decode(
-            $this->app->getInput()->getString(SerializedExpression::REQUEST_KEY),
-        );
-
-        if (
-            $state === null
-            || $this->app->getInput()->getCmd('option') !== 'com_content'
-            || $this->app->getInput()->getCmd('view') !== 'category'
-        ) {
-            return;
-        }
-
-        $scope = $this->taxonomies->resolve(
-            $state['category'],
-            array_values($this->app->getIdentity()->getAuthorisedViewLevels()),
-            $this->app->getLanguage()->getTag(),
-        );
-        $parsed = (new FacetExpressionParser())->parse($state['expression']);
-        $expression = $parsed === null ? null : (new TagPathResolver())->resolve($parsed, $scope['nodes']);
-
-        // Breadcrumbs are linear. A compound AND/OR expression has no honest
-        // single ancestor chain, so leave Joomla's category pathway untouched.
-        if ($expression === null || count($expression->groups) !== 1 || count($expression->groups[0]->paths) !== 1) {
-            return;
-        }
-
-        $path = $expression->groups[0]->paths[0]->tags;
-        $this->addMarker();
-        $last = array_key_last($path);
-        $active = $this->app->getMenu()->getActive();
-        $itemId = $active !== null && ($active->query['option'] ?? null) === 'com_content' ? (int) $active->id : null;
-
-        foreach ($path as $index => $node) {
-            $partial = new FacetExpression([new FacetGroup([new TagPath(array_slice($path, 0, $index + 1))])]);
-            $this->app->getPathway()->addItem(
-                $node->title !== '' ? $node->title : $node->alias,
-                $index === $last ? '' : FacetedRoute::get($state['category'], $partial, $itemId),
-            );
-        }
     }
 
     private function addMarker(): void

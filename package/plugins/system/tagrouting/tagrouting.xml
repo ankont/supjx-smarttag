@@ -5,7 +5,7 @@
     <creationDate>2026-09</creationDate>
     <copyright>(C) 2026 SuperSoft</copyright>
     <license>GNU General Public License version 2 or later</license>
-    <version>4.0.0</version>
+    <version>4.0.4</version>
     <description>PLG_SYSTEM_TAGROUTING_XML_DESCRIPTION</description>
     <namespace path="src">SuperSoft\Plugin\System\TagRouting</namespace>
     <files>
@@ -97,11 +97,23 @@
                     <option value="__custom__">PLG_SYSTEM_TAGROUTING_MARKER_CUSTOM</option>
                 </field>
                 <field
+                    name="show_breadcrumb_marker"
+                    type="radio"
+                    layout="joomla.form.field.radio.switcher"
+                    default="1"
+                    showon="enable_hierarchical:1"
+                    label="PLG_SYSTEM_TAGROUTING_FIELD_SHOW_BREADCRUMB_MARKER_LABEL"
+                    description="PLG_SYSTEM_TAGROUTING_FIELD_SHOW_BREADCRUMB_MARKER_DESC"
+                >
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field
                     name="breadcrumb_marker"
                     type="text"
                     default="#"
                     filter="raw"
-                    showon="enable_hierarchical:1[OR]enable_faceted:1"
+                    showon="enable_hierarchical:1[AND]show_breadcrumb_marker:1"
                     label="PLG_SYSTEM_TAGROUTING_FIELD_BREADCRUMB_MARKER_LABEL"
                     description="PLG_SYSTEM_TAGROUTING_FIELD_BREADCRUMB_MARKER_DESC"
                 />

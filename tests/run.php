@@ -23,6 +23,7 @@ use SuperSoft\Plugin\System\TagRouting\Domain\TagNode;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagPathResolver;
 use SuperSoft\Plugin\System\TagRouting\Menu\LogicalFilterState;
 use SuperSoft\Plugin\System\TagRouting\Routing\FacetDelimiter;
+use SuperSoft\Plugin\System\TagRouting\Routing\StandaloneTagQueryCleaner;
 use SuperSoft\Plugin\System\TagRouting\Configuration\RoutingFeatures;
 use SuperSoft\Plugin\System\TagRouting\Tag\TagHierarchyNode;
 use SuperSoft\Plugin\System\TagRouting\Tag\TagHierarchyResolver;
@@ -126,11 +127,30 @@ $assert($delimiter->extract(['tag', 'christmas']) === null, 'Bare tag alias was 
 $assert($delimiter->extract(['!']) === null, 'Delimiter without a filter was accepted.');
 $assert($delimiter->extract(['unresolved', '!', 'christmas']) === null, 'Delimiter after an unresolved real route was accepted.');
 
+$standaloneQuery = (new StandaloneTagQueryCleaner())->clean([
+    'option' => 'com_tags',
+    'view' => 'tag',
+    'id' => [42],
+    'Itemid' => 123,
+    'layout' => 'default',
+    'catid' => 9,
+    'tmpl' => 'component',
+    'tag_id' => 42,
+    'tag_preview' => 1,
+    'lang' => 'el-GR',
+    'custom' => 'preserved',
+]);
+$assert($standaloneQuery === ['lang' => 'el-GR', 'custom' => 'preserved'], 'Standalone route leaked category or preview context.');
+
 $defaults = RoutingFeatures::fromArray([]);
 $assert($defaults->canonicalCleanup && !$defaults->hierarchicalTags && $defaults->facetedCategories, 'Upgrade defaults changed existing behavior.');
 $assert($defaults->acceptedMarkers === ['!', '!tag', '!filter'], 'Default accepted markers changed.');
 $assert($defaults->canonicalMarker === '!', 'Default canonical marker changed.');
 $assert($defaults->breadcrumbMarker === '#', 'Default breadcrumb marker changed.');
+$assert(
+    RoutingFeatures::fromArray(['show_breadcrumb_marker' => 0, 'breadcrumb_marker' => '#'])->breadcrumbMarker === '',
+    'Disabled breadcrumb marker was still rendered.',
+);
 
 for ($mask = 0; $mask < 8; ++$mask) {
     $features = RoutingFeatures::fromArray([
@@ -170,6 +190,21 @@ $assert(
     $menuSelector->match(['menu-a', 'menu-b', 'tags', 'age-group'], $menuContexts, 'el-GR')?->itemId === 20,
     'Full nested Tag Pages route was not treated as the namespace boundary.',
 );
+// Root-marker ownership and canonical standalone routes must stay consistent.
+foreach ([true, false] as $canonicalMenu) {
+    $bound = new StandaloneMenuContext(30, 'tags', '*', $canonicalMenu);
+    $assert($bound->handlesRootMarker(), 'Existing menu defaults released root marker ownership.');
+    $assert($bound->usesMenuRoute() === $canonicalMenu, 'Bound marker changed canonical preference.');
+    $independent = new StandaloneMenuContext(30, 'tags', '*', $canonicalMenu, false);
+    $assert(!$independent->handlesRootMarker(), 'Independent marker was claimed by standalone context.');
+    $assert($independent->usesMenuRoute(), 'Standalone links collided with independent filter URLs.');
+    $empty = new StandaloneMenuContext(30, '', '*', $canonicalMenu, false);
+    $assert($empty->handlesRootMarker() && !$empty->usesMenuRoute(), 'Empty menu route lost standalone fallback.');
+}
+$independentContexts = [new StandaloneMenuContext(10, 'tags', '*', true), new StandaloneMenuContext(20, 'el/tags', 'el-GR', true, false)];
+$assert(!$menuSelector->best($independentContexts, 'el-GR')->handlesRootMarker(), 'Language-specific marker independence was ignored.');
+$assert($menuSelector->best($independentContexts, 'en-GB')->handlesRootMarker(), 'Marker independence leaked across languages.');
+$assert($menuSelector->match(['el', 'tags', 'age-group'], $independentContexts, 'el-GR')?->itemId === 20, 'Independent root marker disabled the standalone menu namespace.');
 $strictNodes = [
     new TagNode(201, 'root', 1, 1, 8, 201),
     new TagNode(202, 'middle', 201, 2, 7, 201),

@@ -21,17 +21,17 @@ package/
 The build creates three constituent ZIPs and wraps them in one installable package:
 
 ```text
-build/output/pkg_smarttag_v4.0.0.zip
+build/output/pkg_smarttag_v4.1.5.zip
 ```
 
 The internal identities remain `system/tagrouting`, `fields/tagselect`, and `com_tagrouting`. Installing the package therefore upgrades existing standalone copies instead of creating duplicates or losing their saved parameters and custom fields. Each extension keeps its own meaningful release line:
 
 | Extension | Version in this package |
 |---|---:|
-| `pkg_smarttag` | 4.0.0 |
-| `plg_system_tagrouting` | 4.0.0 |
+| `pkg_smarttag` | 4.1.5 |
+| `plg_system_tagrouting` | 4.0.4 |
 | `plg_fields_tagselect` | 1.7.0 |
-| `com_tagrouting` | 1.0.0 |
+| `com_tagrouting` | 1.1.4 |
 
 ## SmartTag Select custom field
 
@@ -61,6 +61,15 @@ All eight combinations remain supported. A disabled feature attaches no correspo
 
 Create a menu item of type **SUPJX Tag Pages**. It represents no particular tag and has no tag selector. Its full Joomla menu route is an explicit standalone namespace boundary.
 
+The **Page to display** option controls only the bare menu route:
+
+- **Virtual tag root (default):** renders Joomla's native `com_tags` tag view with no selected tag and zero content results. It uses the normal `html/com_tags/tag` template overrides and exposes `supjx_virtual_root=1` in the view parameters, allowing an override to render the top-level tag hierarchy.
+- **Top-level tags:** dispatches Joomla's native `com_tags` all-tags view with its root parent selected, so only top-level tags are listed. Its tag links pass through SmartTag routing and open the corresponding standalone hierarchical tag pages. Those pages are rendered by Joomla's native `com_tags` tag view and retain normal template-override support.
+- **All tags:** dispatches the same native Joomla all-tags view without a parent restriction, preserving Joomla's standard flat list of every published tag.
+- **Empty — routing context only:** renders an unfiltered component shell with standard Joomla page-heading support. Templates, modules, and page builders can provide the visible library content.
+
+Child routes such as `/tags/age-group/secondary` behave identically in both modes.
+
 Examples:
 
 ```text
@@ -73,9 +82,15 @@ Nested Tag Pages item route: /menu-a/menu-b/tags
 
 Parent menu items may point to content categories; that does not change the meaning. The actual `com_tagrouting` menu item is authoritative, so everything after its full route is a standalone tag hierarchy, never a faceted category expression.
 
+### Bind root routing marker to this menu item
+
+This advanced menu-item option defaults to **Yes**, preserving existing behavior. Set it to **No** to keep root marker URLs (`/!/...`, including accepted marker aliases) independent of the standalone menu route. The standalone parser leaves these requests untouched for the underlying page's filtering router; it does not select the Tag Pages menu item, append standalone breadcrumbs, or redirect the filter to `/tags/...`.
+
+With binding disabled, standalone tag links always use the full menu route, even if **Use menu route as canonical URL** is set to **No**. This keeps standalone pages and filters distinct. A non-empty menu route is required; an empty route retains existing marker behavior. Existing language and lowest-Itemid context selection rules determine which menu item's setting applies. Filtering still depends on the underlying view's existing filtering support.
+
 ### Use menu route as canonical URL
 
-The menu item's advanced option defaults to **Yes**.
+The menu item's advanced option defaults to **Yes**. The following applies while root marker binding is enabled; disabling binding always uses the menu route for standalone links.
 
 - **Yes:** its full route becomes the canonical base for standalone tag pages. The marker form is still accepted as an alternate/fallback and can canonicalize to the menu form on safe GET/HEAD requests.
 - **No:** the item supplies `Itemid`, Gantry/template assignment, module assignment, and language context only. The public canonical URL remains marker-based.
@@ -164,15 +179,15 @@ Bare `/tag/` and `/filter/` are never markers.
 
 ## Breadcrumb hierarchy
 
-After Joomla dispatches the real component, the plugin appends the exact resolved hierarchy to its pathway. The independent **Breadcrumb tag marker** is `#` by default and may be blank.
+After Joomla dispatches a standalone tag page, the plugin appends the exact resolved tag hierarchy to its pathway. This applies to both marker-based (`/!/age-group/secondary`) and menu-based (`/tags/age-group/secondary`) standalone routes. The independent **Show breadcrumb tag marker** switch controls whether a separate marker item is inserted; its text is `#` by default and remains configurable.
 
-Faceted example:
+Standalone example without a tag-pages menu context:
 
 ```text
-Home / Selections / # / Age Group / Secondary / Gymnasium
+Home / # / Age Group / Secondary
 ```
 
-Intermediate tag links remain faceted inside the same category. Standalone breadcrumbs instead use standalone tag routes for every intermediate level. If a filter expression contains multiple OR alternatives or AND groups, the plugin leaves Joomla's category breadcrumb unchanged because such an expression has no truthful single linear ancestor chain.
+Intermediate tag links use standalone tag routes. Faceted category URLs only filter the existing category page, so its Joomla breadcrumb remains unchanged for every filter expression, including single-tag, OR, and AND filters.
 
 ## Public route APIs
 
@@ -236,7 +251,7 @@ Build on Windows with:
 powershell -ExecutionPolicy Bypass -File build/build.ps1
 ```
 
-Install `build/output/pkg_smarttag_v4.0.0.zip`. Enable **System - SuperSoftJx - SmartTag Routing** for routing features and **Fields - SuperSoftJx - SmartTag Select** wherever the custom field type is needed. Configure routing in the system plugin's **Plugin** tab, and create a **SUPJX Tag Pages** menu item if menu-aware standalone context is desired.
+Install `build/output/pkg_smarttag_v4.1.5.zip`. Enable **System - SuperSoftJx - SmartTag Routing** for routing features and **Fields - SuperSoftJx - SmartTag Select** wherever the custom field type is needed. Configure routing in the system plugin's **Plugin** tab, and create a **SUPJX Tag Pages** menu item if menu-aware standalone context is desired.
 
 Tests:
 
@@ -255,9 +270,9 @@ The dependency-free suite covers feature isolation, compatibility defaults, conf
 
 ## Intentional limitations
 
-- The bare SUPJX Tag Pages menu route has no landing-page renderer and returns 404 without a tag path.
+- The bare SUPJX Tag Pages menu route can display a native-layout virtual tag root with zero results (default), Joomla's all-tags view restricted to top-level tags, its unrestricted flat all-tags list, or an empty routing-context landing page; child tag paths remain native standalone tag views.
 - Standalone pages represent one tag; native multi-tag `com_tags` views remain ordinary Joomla routes.
-- Compound AND/OR filters do not receive a misleading linear tag breadcrumb.
+- Faceted category filters preserve Joomla's category breadcrumb for all filter expressions.
 - Existing non-marker `com_tags` routes are not globally redirected.
 - Faceted expressions support positive AND-of-OR groups only; no parentheses or NOT.
 - If several SUPJX Tag Pages items exist for the same language, the lowest Itemid is the deterministic context/canonical default; use one such item per language when possible.

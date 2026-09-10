@@ -65,7 +65,9 @@ final readonly class RoutingFeatures
             self::enabled($values, 'enable_faceted', true),
             $accepted,
             $canonical,
-            self::breadcrumbMarker((string) ($values['breadcrumb_marker'] ?? self::DEFAULT_BREADCRUMB_MARKER)),
+            self::enabled($values, 'show_breadcrumb_marker', true)
+                ? self::breadcrumbMarker((string) ($values['breadcrumb_marker'] ?? self::DEFAULT_BREADCRUMB_MARKER))
+                : '',
         );
     }
 

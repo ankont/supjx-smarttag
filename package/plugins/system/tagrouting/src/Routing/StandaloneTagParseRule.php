@@ -36,6 +36,13 @@ final readonly class StandaloneTagParseRule
         if ($marker !== null) {
             $aliases = $marker['segments'];
             $context = $this->menus->find($language);
+
+            if ($context !== null && !$context->handlesRootMarker()) {
+                // Leave the URI and active menu untouched for the underlying
+                // component router to interpret this as a filter expression.
+                return;
+            }
+
             $canonicalInput = $context !== null
                 && $context->useMenuRouteAsCanonical
                 && $context->routeSegments !== []
@@ -49,7 +56,7 @@ final readonly class StandaloneTagParseRule
             }
 
             $aliases = array_values(array_slice($routeSegments, count($context->routeSegments)));
-            $canonicalInput = $context->useMenuRouteAsCanonical && $context->routeSegments !== [];
+            $canonicalInput = $context->usesMenuRoute();
         }
 
         $this->assertValidPath($aliases);

@@ -14,8 +14,21 @@ final readonly class StandaloneMenuContext
         string $route,
         public string $language,
         public bool $useMenuRouteAsCanonical,
+        public bool $bindRootMarker = true,
     ) {
         $this->routeSegments = array_values(array_filter(explode('/', trim($route, '/')), 'strlen'));
+    }
+
+    public function handlesRootMarker(): bool
+    {
+        // Without a distinct menu namespace, standalone links still need the marker.
+        return $this->bindRootMarker || $this->routeSegments === [];
+    }
+
+    public function usesMenuRoute(): bool
+    {
+        return $this->routeSegments !== []
+            && ($this->useMenuRouteAsCanonical || !$this->handlesRootMarker());
     }
 
     public function route(): string
