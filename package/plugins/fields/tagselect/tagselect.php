@@ -3,7 +3,7 @@
  * @package     Joomla.Plugin
  * @subpackage  Fields.tagselect
  *
- * @copyright   (C) 2026 SuperSoft
+ * @copyright   © 2026 SuperSoft — Kontarinis Andreas
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -141,6 +141,10 @@ class PlgFieldsTagselect extends FieldsPlugin implements SubscriberInterface
             return;
         }
 
+        // Form filtering may have created tags since this plugin first loaded the tree.
+        $this->tagRows = null;
+        $this->managedRows = [];
+
         $fields = $this->getNativeTagselectFields($nativeContext, $item);
 
         if (!$fields) {
@@ -224,6 +228,12 @@ class PlgFieldsTagselect extends FieldsPlugin implements SubscriberInterface
      */
     protected function getNativeContextConfig(string $context, $item = null): ?array
     {
+        $parts = FieldsHelper::extract($context, $item);
+
+        if ($parts && count($parts) >= 2) {
+            $context = $parts[0] . '.' . $parts[1];
+        }
+
         if ($context === 'com_content.article') {
             return [
                 'fields_context' => 'com_content.article',

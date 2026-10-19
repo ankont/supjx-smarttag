@@ -55,11 +55,20 @@ final class TagRouting extends CMSPlugin implements SubscriberInterface, SiteRou
 
         $features = RoutingFeatures::fromRegistry($this->params);
 
-        if (!$features->needsContentRouter()) {
+        [, $type, $extensionName, $container] = array_values($event->getArguments());
+
+        if ($type === ComponentInterface::class && $extensionName === 'tags' && $features->hierarchicalTags) {
+            $container->registerServiceProvider(new FacetedMVCFactoryProvider(
+                '\\SuperSoft\\Plugin\\System\\TagRouting\\Tags',
+                'Joomla\\Component\\Tags',
+            ));
+
             return;
         }
 
-        [, $type, $extensionName, $container] = array_values($event->getArguments());
+        if (!$features->needsContentRouter()) {
+            return;
+        }
 
         if ($type !== ComponentInterface::class || $extensionName !== 'content') {
             return;
@@ -167,7 +176,7 @@ final class TagRouting extends CMSPlugin implements SubscriberInterface, SiteRou
             return;
         }
 
-        // Keep the SUPJX menu item active for Itemid, modules, template, and
+        // Keep the SupJx SmartTag menu item active for Itemid, modules, template, and
         // page context while dispatching Joomla's native all-tags view. Core
         // TagsModel treats parent_id=1 as the direct children of its root tag;
         // parent_id=0 leaves the hierarchy unrestricted.

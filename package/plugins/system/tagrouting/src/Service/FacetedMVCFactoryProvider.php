@@ -18,14 +18,14 @@ use SuperSoft\Plugin\System\TagRouting\MVC\FacetedMVCFactory;
 
 final readonly class FacetedMVCFactoryProvider implements ServiceProviderInterface
 {
-    public function __construct(private string $namespace)
+    public function __construct(private string $namespace, private string $coreNamespace = 'Joomla\\Component\\Content')
     {
     }
 
     public function register(Container $container): void
     {
         $container->set(MVCFactoryInterface::class, function (Container $container): MVCFactoryInterface {
-            $factory = new FacetedMVCFactory($this->namespace);
+            $factory = new FacetedMVCFactory($this->namespace, null, $this->coreNamespace);
             $factory->setFormFactory($container->get(FormFactoryInterface::class));
             $factory->setDispatcher($container->get(DispatcherInterface::class));
             $factory->setDatabase($container->get(DatabaseInterface::class));

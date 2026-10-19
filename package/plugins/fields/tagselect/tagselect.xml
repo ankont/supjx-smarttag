@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="plugin" group="fields" method="upgrade" version="5.0">
     <name>PLG_FIELDS_TAGSELECT</name>
-    <author>SuperSoft</author>
+    <author>SuperSoft — Kontarinis Andreas</author>
     <creationDate>2026-02-20</creationDate>
-    <copyright>(C) 2026 SuperSoft</copyright>
+    <copyright>© 2026 SuperSoft — Kontarinis Andreas</copyright>
     <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-    <version>1.7.0</version>
+    <version>1.7.2</version>
     <description>PLG_FIELDS_TAGSELECT_XML_DESCRIPTION</description>
     <element>tagselect</element>
 

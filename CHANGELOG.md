@@ -1,5 +1,26 @@
 # Changelog
 
+## 4.2.5 - 2026-10-19
+
+- Restored the localized plugin-group prefix in the SmartTag Select display name in both English and Greek language files.
+- Updated the independently versioned tag-select plugin to 1.7.2.
+
+## 4.2.4 — 2026-10-07
+
+- Added live publication and access checks to native tag-page queries for articles and content categories, including publication dates and category ancestors. This prevents stale UCM records from exposing unpublished native content through SmartTag standalone pages.
+- Updated the routing plugin to 4.0.6. Clear existing Joomla tag-view and page caches after installation.
+
+## 4.2.3 - 2026-10-03
+
+- Fixed native tag selections saved through Joomla frontend article forms, including the SmartBrowser editor, by normalizing the save context with Joomla's FieldsHelper.
+- Refreshed tag-tree and scope caches after tag creation and before native tag merging so newly created tags can be selected on the first save.
+- Updated the independently versioned tag-select plugin to 1.7.1.
+
+## 4.2.2 — 2026-10-03
+
+- Registered the serialized faceted request in Joomla's content view cache parameters, separating unfiltered categories and different tag expressions even when they share an Itemid.
+- Updated the independently versioned routing plugin to 4.0.5. Clear existing Joomla content caches after installing this fix.
+
 ## 4.2.1 — 2026-09-10
 
 - Removed the component-rendered virtual-root heading so the delegated `com_tags/tag` override remains the single owner of the page heading.
@@ -25,7 +46,7 @@
 
 ## 4.1.3 — 2026-09-10
 
-- Added cleanup for the redundant `view=tags` query on the bare SUPJX Tag Pages menu route.
+- Added cleanup for the redundant `view=tags` query on the bare SupJx SmartTag Pages menu route.
 - Prevented the current language from leaking as a `lang` query parameter in standalone breadcrumb links when no language prefix is needed.
 - Restored normal `html/com_tags/tag` template-override discovery for the delegated virtual-root view.
 - Updated the independently versioned routing plugin to 4.0.2 and context component to 1.1.3.
@@ -41,7 +62,7 @@
 ## 4.1.0 — 2026-09-10
 
 - Added configurable Tag Pages landing content: a native-layout virtual tag root with zero content results by default, Joomla's all-tags view restricted to top-level tags, its unrestricted flat all-tags list, or an empty routing-context page.
-- Made the bare SUPJX Tag Pages menu route a valid unfiltered landing page with standard Joomla page-heading support instead of returning 404.
+- Made the bare SupJx SmartTag Pages menu route a valid unfiltered landing page with standard Joomla page-heading support instead of returning 404.
 - Added a Tag Pages menu option to leave root markers independent for underlying-page filtering, while keeping standalone links on the menu route. Updated the context component to 1.1.0.
 - Restricted taxonomy breadcrumbs to standalone tag pages (both marker-based and menu-based URLs); faceted category filters now preserve Joomla's category breadcrumb.
 
@@ -54,7 +75,7 @@
 - Introduced the unified **SuperSoftJx - SmartTag** Joomla package.
 - Bundled the existing `fields/tagselect` plugin as the independently enabled **Fields - SuperSoftJx - SmartTag Select**, retaining its `1.7.0` child version and Joomla element identity.
 - Converted the standalone system routing plugin into a package child while retaining its Joomla element identity and saved settings.
-- Added the new `com_tagrouting` 1.0.0 companion component and **SUPJX Tag Pages** menu item type.
+- Added the new `com_tagrouting` 1.0.0 companion component and **SupJx SmartTag Pages** menu item type.
 - Added menu-based and marker-based standalone tag routes with explicit canonical/context separation.
 - Replaced the fixed standalone prefix with configurable accepted and canonical routing markers.
 - Added strict menu-route boundary discovery with multilingual item preference.

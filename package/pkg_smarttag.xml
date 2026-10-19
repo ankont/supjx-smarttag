@@ -2,11 +2,11 @@
 <extension type="package" method="upgrade">
     <name>PKG_SMARTTAG</name>
     <packagename>smarttag</packagename>
-    <author>SuperSoft</author>
+    <author>SuperSoft — Kontarinis Andreas</author>
     <creationDate>2026-09</creationDate>
-    <copyright>(C) 2026 SuperSoft</copyright>
+    <copyright>© 2026 SuperSoft — Kontarinis Andreas</copyright>
     <license>GNU General Public License version 2 or later</license>
-    <version>4.2.1</version>
+    <version>4.2.5</version>
     <description>PKG_SMARTTAG_XML_DESCRIPTION</description>
     <blockChildUninstall>true</blockChildUninstall>
     <files folder="packages">

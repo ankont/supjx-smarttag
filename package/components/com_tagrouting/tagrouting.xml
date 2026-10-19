@@ -2,9 +2,9 @@
 <extension type="component" method="upgrade">
     <name>COM_TAGROUTING</name>
     <element>com_tagrouting</element>
-    <author>SuperSoft</author>
+    <author>SuperSoft — Kontarinis Andreas</author>
     <creationDate>2026-09</creationDate>
-    <copyright>(C) 2026 SuperSoft</copyright>
+    <copyright>© 2026 SuperSoft — Kontarinis Andreas</copyright>
     <license>GNU General Public License version 2 or later</license>
     <version>1.2.1</version>
     <description>COM_TAGROUTING_XML_DESCRIPTION</description>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="plugin" group="system" method="upgrade">
     <name>PLG_SYSTEM_TAGROUTING</name>
-    <author>SuperSoft</author>
+    <author>SuperSoft — Kontarinis Andreas</author>
     <creationDate>2026-09</creationDate>
-    <copyright>(C) 2026 SuperSoft</copyright>
+    <copyright>© 2026 SuperSoft — Kontarinis Andreas</copyright>
     <license>GNU General Public License version 2 or later</license>
-    <version>4.0.4</version>
+    <version>4.0.6</version>
     <description>PLG_SYSTEM_TAGROUTING_XML_DESCRIPTION</description>
     <namespace path="src">SuperSoft\Plugin\System\TagRouting</namespace>
     <files>

@@ -11,7 +11,7 @@ final class TagRoute
 {
     /**
      * Builds one standalone tag-page URL. The router decides whether its
-     * canonical base is a SUPJX Tag Pages menu route or the canonical marker.
+     * canonical base is a SupJx SmartTag Pages menu route or the canonical marker.
      */
     public static function forTag(int $tagId, ?string $language = null): string
     {

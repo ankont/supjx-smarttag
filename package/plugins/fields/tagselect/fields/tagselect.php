@@ -3,7 +3,7 @@
  * @package     Joomla.Plugin
  * @subpackage  Fields.tagselect
  *
- * @copyright   (C) 2026 SuperSoft
+ * @copyright   © 2026 SuperSoft — Kontarinis Andreas
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -1388,6 +1388,10 @@ class JFormFieldTagselect extends TagField
         }
 
         $this->allowedRows = null;
+
+        // Creating a node also changes the nested-set boundaries of its ancestors.
+        $this->rootRows = null;
+        $this->excludedRootRows = null;
 
         return (int) $model->getState('tag.id');
     }

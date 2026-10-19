@@ -4,7 +4,7 @@ A Joomla 5/6 suite for structured tag selection, deterministic hierarchical tag 
 
 - `plg_system_tagrouting`: routing, canonicalization, tag resolution, faceted filtering, public route APIs, request state, and breadcrumbs.
 - `plg_fields_tagselect`: the **SmartTag Select** custom-field type, with branch scoping, optional native Joomla-tag storage, leaf-only selection, and controlled tag creation.
-- `com_tagrouting`: the lightweight **SUPJX Tag Pages** menu item type used only for Joomla `Itemid`, template/Gantry, module, language, and optional canonical-base context.
+- `com_tagrouting`: the lightweight **SupJx SmartTag Pages** menu item type used only for Joomla `Itemid`, template/Gantry, module, language, and optional canonical-base context.
 
 The three extensions are packaged together but remain operationally independent. SmartTag Select does not require the routing feature to render or save a field, and routing does not require a SmartTag Select field. The component never replaces `com_tags`, selects a tag, or renders a tag landing page. Valid standalone routes always resolve to the normal Joomla `com_tags` tag view and existing template overrides.
 
@@ -21,16 +21,16 @@ package/
 The build creates three constituent ZIPs and wraps them in one installable package:
 
 ```text
-build/output/pkg_smarttag_v4.2.1.zip
+build/output/pkg_smarttag_v4.2.5.zip
 ```
 
 The internal identities remain `system/tagrouting`, `fields/tagselect`, and `com_tagrouting`. Installing the package therefore upgrades existing standalone copies instead of creating duplicates or losing their saved parameters and custom fields. Each extension keeps its own meaningful release line:
 
 | Extension | Version in this package |
 |---|---:|
-| `pkg_smarttag` | 4.2.1 |
-| `plg_system_tagrouting` | 4.0.4 |
-| `plg_fields_tagselect` | 1.7.0 |
+| `pkg_smarttag` | 4.2.5 |
+| `plg_system_tagrouting` | 4.0.6 |
+| `plg_fields_tagselect` | 1.7.2 |
 | `com_tagrouting` | 1.2.1 |
 
 ## SmartTag Select custom field
@@ -57,9 +57,9 @@ The plugin's standard **Plugin** tab keeps three independent feature switches:
 
 All eight combinations remain supported. A disabled feature attaches no corresponding routing rules, state, redirects, or breadcrumb behavior.
 
-## SUPJX Tag Pages menu item
+## SupJx SmartTag Pages menu item
 
-Create a menu item of type **SUPJX Tag Pages**. It represents no particular tag and has no tag selector. Its full Joomla menu route is an explicit standalone namespace boundary.
+Create a menu item of type **SupJx SmartTag Pages**. It represents no particular tag and has no tag selector. Its full Joomla menu route is an explicit standalone namespace boundary.
 
 The **Page to display** option controls only the bare menu route:
 
@@ -112,7 +112,7 @@ Both forms below express the same standalone tag intent:
 /tags/age-group/secondary/gymnasium.html
 ```
 
-The first is the deterministic root-marker form. The second is available only when `/tags` is the full route of a real SUPJX Tag Pages menu item. With no suitable menu item, the canonical standalone form uses the configured canonical marker.
+The first is the deterministic root-marker form. The second is available only when `/tags` is the full route of a real SupJx SmartTag Pages menu item. With no suitable menu item, the canonical standalone form uses the configured canonical marker.
 
 Resolution is strictly parent-to-child:
 
@@ -239,7 +239,7 @@ Disabling cleanup leaves normal Joomla menu selection and query output untouched
 - The existing `fields/tagselect` record, custom fields, values, and field parameters are retained.
 - Enable each plugin independently after a fresh installation. An already enabled child plugin remains enabled when upgraded.
 - The old textual **Tag URL prefix** setting is removed.
-- A previous `/tags/...` path is a standalone route only after creating a SUPJX Tag Pages menu item whose actual full route is `/tags`.
+- A previous `/tags/...` path is a standalone route only after creating a SupJx SmartTag Pages menu item whose actual full route is `/tags`.
 - Without that menu item, standalone routes use the canonical marker, `/!/...` by default.
 - Hierarchical standalone routing remains Off by default for installations that never saved the setting; cleanup and faceting remain On.
 
@@ -251,7 +251,7 @@ Build on Windows with:
 powershell -ExecutionPolicy Bypass -File build/build.ps1
 ```
 
-Install `build/output/pkg_smarttag_v4.2.1.zip`. Enable **System - SuperSoftJx - SmartTag Routing** for routing features and **Fields - SuperSoftJx - SmartTag Select** wherever the custom field type is needed. Configure routing in the system plugin's **Plugin** tab, and create a **SUPJX Tag Pages** menu item if menu-aware standalone context is desired.
+Install `build/output/pkg_smarttag_v4.2.5.zip`. Enable **SuperSoftJx - SmartTag Routing** for routing features and **Fields - SuperSoftJx - SmartTag Select** wherever the custom field type is needed. Configure routing in the system plugin's **Plugin** tab, and create a **SupJx SmartTag Pages** menu item if menu-aware standalone context is desired.
 
 Tests:
 
@@ -270,9 +270,9 @@ The dependency-free suite covers feature isolation, compatibility defaults, conf
 
 ## Intentional limitations
 
-- The bare SUPJX Tag Pages menu route can display a native-layout virtual tag root with zero results (default), Joomla's all-tags view restricted to top-level tags, its unrestricted flat all-tags list, or an empty routing-context landing page; child tag paths remain native standalone tag views.
+- The bare SupJx SmartTag Pages menu route can display a native-layout virtual tag root with zero results (default), Joomla's all-tags view restricted to top-level tags, its unrestricted flat all-tags list, or an empty routing-context landing page; child tag paths remain native standalone tag views.
 - Standalone pages represent one tag; native multi-tag `com_tags` views remain ordinary Joomla routes.
 - Faceted category filters preserve Joomla's category breadcrumb for all filter expressions.
 - Existing non-marker `com_tags` routes are not globally redirected.
 - Faceted expressions support positive AND-of-OR groups only; no parentheses or NOT.
-- If several SUPJX Tag Pages items exist for the same language, the lowest Itemid is the deterministic context/canonical default; use one such item per language when possible.
+- If several SupJx SmartTag Pages items exist for the same language, the lowest Itemid is the deterministic context/canonical default; use one such item per language when possible.

@@ -3,7 +3,7 @@
  * @package     Joomla.Plugin
  * @subpackage  Fields.tagselect
  *
- * @copyright   (C) 2026 SuperSoft
+ * @copyright   © 2026 SuperSoft — Kontarinis Andreas
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 

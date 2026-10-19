@@ -8,7 +8,7 @@ use Psr\Log\LoggerInterface;
 
 final class FacetedMVCFactory extends \Joomla\CMS\MVC\Factory\MVCFactory
 {
-    public function __construct(private readonly string $overlayNamespace, ?LoggerInterface $logger = null)
+    public function __construct(private readonly string $overlayNamespace, ?LoggerInterface $logger = null, private readonly string $coreNamespace = 'Joomla\\Component\\Content')
     {
         parent::__construct($overlayNamespace, $logger);
     }
@@ -21,7 +21,7 @@ final class FacetedMVCFactory extends \Joomla\CMS\MVC\Factory\MVCFactory
             return $overlay;
         }
 
-        $core = 'Joomla\\Component\\Content\\' . ucfirst($prefix) . '\\' . $suffix;
+        $core = trim($this->coreNamespace, '\\') . '\\' . ucfirst($prefix) . '\\' . $suffix;
 
         return class_exists($core) ? $core : null;
     }
