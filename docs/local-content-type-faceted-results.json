@@ -1,0 +1,106 @@
+{
+  "requests": 20,
+  "result": "PASS",
+  "checks": [
+    {
+      "path": "/library/lessons/!/primary+virgin-mary.html",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/virgin-mary+primary.html?start=30&cat-view=list&lang=el-GR",
+      "status": 301,
+      "location": "http://localhost:8089/library/lessons/!/primary+virgin-mary.html?cat-view=list&lang=el-GR&start=30"
+    },
+    {
+      "path": "http://localhost:8089/library/lessons/!/primary+virgin-mary.html?cat-view=list&lang=el-GR&start=30",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/primary,primary+virgin-mary.html?start=30&cat-view=list&lang=el-GR",
+      "status": 301,
+      "location": "http://localhost:8089/library/lessons/!/primary+virgin-mary.html?cat-view=list&lang=el-GR&start=30"
+    },
+    {
+      "path": "http://localhost:8089/library/lessons/!/primary+virgin-mary.html?cat-view=list&lang=el-GR&start=30",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/primary+virgin-mary+primary.html?start=30&cat-view=list&lang=el-GR",
+      "status": 301,
+      "location": "http://localhost:8089/library/lessons/!/primary+virgin-mary.html?cat-view=list&lang=el-GR&start=30"
+    },
+    {
+      "path": "http://localhost:8089/library/lessons/!/primary+virgin-mary.html?cat-view=list&lang=el-GR&start=30",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/secondary,primary.html",
+      "status": 301,
+      "location": "http://localhost:8089/library/lessons/!/primary,secondary.html"
+    },
+    {
+      "path": "http://localhost:8089/library/lessons/!/primary,secondary.html",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/primary,secondary+primary.html",
+      "status": 301,
+      "location": "http://localhost:8089/library/lessons/!/primary.html"
+    },
+    {
+      "path": "http://localhost:8089/library/lessons/!/primary.html",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/primary,secondary.html?cat-view=list",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/primary,secondary.html?cat-view=list&start=30",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/primary,secondary.html?cat-view=list",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/library/lessons.html?cat-view=list&start=30",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/primary,primary,primary,primary,primary,primary,primary,primary,primary,primary,primary.html",
+      "status": 404,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/primary+primary+primary+primary+primary+primary+primary+primary+primary+primary+primary.html",
+      "status": 404,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/primary,primary,primary,primary,primary,primary,primary,primary+secondary,secondary,secondary,secondary,secondary,secondary,secondary,secondary.html",
+      "status": 404,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/primary,,secondary.html",
+      "status": 404,
+      "location": null
+    },
+    {
+      "path": "/library/lessons/!/no-such-tag-for-regression.html",
+      "status": 404,
+      "location": null
+    }
+  ]
+}

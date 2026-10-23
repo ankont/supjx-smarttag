@@ -1,0 +1,20 @@
+{
+  "result": "PASS",
+  "checks": [
+    {
+      "path": "/tag/age-group/primary.html",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/tag/age-group/primary.html?start=30",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/tag/age-group/primary.html?__tagrouting_scope%5Btypes%5D%5B0%5D=5&start=30",
+      "status": 301,
+      "location": "http://localhost:8089/tag/age-group/primary.html?start=30"
+    }
+  ]
+}

@@ -17,6 +17,7 @@ final class DisplayController extends \Joomla\Component\Content\Site\Controller\
         // Register even for an unfiltered request, so it cannot reuse old keys.
         $registered = clone ($this->app->registeredurlparams ?? new \stdClass());
         $registered->{SerializedExpression::REQUEST_KEY} = 'STRING';
+        $registered->{'cat-view'} = 'CMD';
         $this->app->registeredurlparams = $registered;
 
         return parent::display($cachable, $urlparams);

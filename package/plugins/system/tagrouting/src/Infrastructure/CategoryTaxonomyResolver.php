@@ -10,6 +10,22 @@ use SuperSoft\Plugin\System\TagRouting\Domain\TagNode;
 
 final class CategoryTaxonomyResolver
 {
+    /** Application and database identities bound cache lifetime and isolation. */
+    private static ?\WeakMap $instances = null;
+
+    public static function forApplication(object $app, DatabaseInterface $db): self
+    {
+        self::$instances ??= new \WeakMap();
+        $databases = self::$instances[$app] ??= new \WeakMap();
+
+        return $databases[$db] ??= new self($db);
+    }
+
+    public static function resetForApplication(object $app): void
+    {
+        if (self::$instances !== null) { unset(self::$instances[$app]); }
+    }
+
     /** @var array<string, array{roots:list<TagNode>,nodes:list<TagNode>}> */
     private array $cache = [];
 

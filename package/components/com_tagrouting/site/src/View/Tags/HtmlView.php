@@ -45,6 +45,10 @@ final class HtmlView extends BaseHtmlView
             $this->landingTitle = 'Φίλτρο';
         }
 
+        // Same presentation contract as actual tag pages, including a zero-result root.
+        $types = array_values(array_unique(array_filter(array_map('intval', (array) $params->get('content_types', [])), static fn (int $id): bool => $id > 0)));
+        $params->set('supjx_content_types', $types);
+        $params->set('supjx_single_content_type', count($types) === 1);
         $params->set('supjx_virtual_root', 1);
         $params->set('supjx_virtual_root_title', $this->landingTitle);
         $params->set('supjx_virtual_root_icon', $this->landingIcon);

@@ -1,0 +1,35 @@
+--- a/templates/site/jl_kidsacademy_free/html/com_tags/tag/default_items.php
++++ b/templates/site/jl_kidsacademy_free/html/com_tags/tag/default_items.php
+@@ -57,11 +57,13 @@
+     'other' => Text::_('TPL_JL_KIDSACADEMY_FREE_TAG_RESULTS_OTHER'),
+ ];
+ $first = true;
++$singleType = (bool) $this->params->get('supjx_single_content_type', false);
+ ?>
+ <?php if (!empty($this->items)) : ?>
+     <div class="tag-results">
+         <?php foreach ($sections as $key => $title) : ?>
+             <?php if ($groups[$key] === []) : continue; endif; ?>
++            <?php if (!$singleType) : ?>
+             <details class="tag-results__section"<?php echo $first ? ' open' : ''; ?>>
+                 <summary class="tag-results__summary">
+                     <span class="tag-results__title"><?php echo $escape($title); ?></span>
+@@ -69,6 +71,7 @@
+                     <span class="tag-results__chevron fas fa-chevron-down" aria-hidden="true"></span>
+                 </summary>
+                 <div class="tag-results__body">
++            <?php endif; ?>
+                     <?php if ($key === 'articles') : ?>
+                         <?php echo LayoutHelper::render('library.view-switcher', ['active' => $viewMode]); ?>
+                         <div class="jl-grid library-items library-items--<?php echo $escape($viewMode); ?> <?php echo $gridClass; ?>" jl-grid>
+@@ -108,8 +111,10 @@
+                             <?php endforeach; ?>
+                         </div>
+                     <?php endif; ?>
++            <?php if (!$singleType) : ?>
+                 </div>
+             </details>
++            <?php endif; ?>
+             <?php $first = false; ?>
+         <?php endforeach; ?>
+     </div>

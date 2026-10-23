@@ -21,6 +21,10 @@ use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
 use SuperSoft\Plugin\System\TagRouting\Menu\LogicalFilterState;
 use SuperSoft\Plugin\System\TagRouting\Menu\MenuTagContextResolver;
 use SuperSoft\Plugin\System\TagRouting\Routing\GenericMenuBuildRule;
+use SuperSoft\Plugin\System\TagRouting\Routing\InternalQueryBoundary;
+use SuperSoft\Plugin\System\TagRouting\Routing\FacetedRequest;
+use SuperSoft\Plugin\System\TagRouting\Routing\TagPageState;
+use SuperSoft\Plugin\System\TagRouting\Infrastructure\CategoryTaxonomyResolver;
 use SuperSoft\Plugin\System\TagRouting\Routing\FacetDelimiter;
 use SuperSoft\Plugin\System\TagRouting\Routing\StandaloneTagBuildRule;
 use SuperSoft\Plugin\System\TagRouting\Routing\StandaloneTagParseRule;
@@ -58,6 +62,7 @@ final class TagRouting extends CMSPlugin implements SubscriberInterface, SiteRou
         [, $type, $extensionName, $container] = array_values($event->getArguments());
 
         if ($type === ComponentInterface::class && $extensionName === 'tags' && $features->hierarchicalTags) {
+            $container->registerServiceProvider(new RouterFactory('\\SuperSoft\\Plugin\\System\\TagRouting\\Tags'));
             $container->registerServiceProvider(new FacetedMVCFactoryProvider(
                 '\\SuperSoft\\Plugin\\System\\TagRouting\\Tags',
                 'Joomla\\Component\\Tags',
@@ -92,11 +97,17 @@ final class TagRouting extends CMSPlugin implements SubscriberInterface, SiteRou
 
         $features = RoutingFeatures::fromRegistry($this->params);
 
-        if (!$features->needsSiteRules()) {
-            return;
-        }
-
         $router = $this->getSiteRouter();
+        FacetedRequest::reset($app);
+        TagPageState::reset($app->getMenu());
+        CategoryTaxonomyResolver::resetForApplication($app);
+        $app->getInput()->set(SerializedExpression::REQUEST_KEY, null);
+        $app->getInput()->set(TagPageState::REQUEST_KEY, null);
+        $app->getInput()->set(TagPageState::SCOPE_KEY, null);
+        $boundary = new InternalQueryBoundary($app);
+        $router->attachParseRule($boundary->parse(...), SiteRouter::PROCESS_BEFORE);
+        $router->attachBuildRule($boundary->build(...), SiteRouter::PROCESS_AFTER);
+
         if ($features->hierarchicalTags) {
             $repository = $this->tags();
             $menus = new StandaloneMenuContextResolver($app->getMenu(), new StandaloneMenuSelector());
@@ -104,7 +115,7 @@ final class TagRouting extends CMSPlugin implements SubscriberInterface, SiteRou
 
             // Capture the tag ID before cleanup or the core com_tags router can
             // consume it. This rule only marks single-tag page builds.
-            $router->attachBuildRule(new StandaloneTagPrepareBuildRule(), SiteRouter::PROCESS_BEFORE);
+            $router->attachBuildRule(new StandaloneTagPrepareBuildRule($app), SiteRouter::PROCESS_BEFORE);
             $router->attachParseRule(
                 new StandaloneTagParseRule(
                     $app,

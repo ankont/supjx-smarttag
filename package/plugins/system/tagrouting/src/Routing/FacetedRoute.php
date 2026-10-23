@@ -8,7 +8,11 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
 use SuperSoft\Plugin\System\TagRouting\Configuration\RoutingFeatures;
+use SuperSoft\Plugin\System\TagRouting\Configuration\FacetLimits;
 use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpression;
+use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser;
+use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionCanonicalizer;
+use SuperSoft\Plugin\System\TagRouting\Domain\TagPathResolver;
 use SuperSoft\Plugin\System\TagRouting\Domain\FacetGroup;
 use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagExpression;
@@ -41,16 +45,16 @@ final class FacetedRoute
         $app = Factory::getApplication();
         $db = Factory::getContainer()->get(DatabaseInterface::class);
         $viewLevels = array_values($app->getIdentity()->getAuthorisedViewLevels());
-        $language ??= $app->getLanguage()->getTag();
+        $scopeLanguage = $language !== null && $language !== '*' ? $language : $app->getLanguage()->getTag();
         self::$tags ??= new TagHierarchyRepository($db, new TagHierarchyResolver());
-        self::$taxonomies ??= new CategoryTaxonomyResolver($db);
-        $resolved = self::$tags->pathForId($tagId, $viewLevels, $language);
+        self::$taxonomies = CategoryTaxonomyResolver::forApplication($app, $db);
+        $resolved = self::$tags->pathForId($tagId, $viewLevels, $scopeLanguage);
 
         if ($resolved === null) {
             return '';
         }
 
-        $scope = self::$taxonomies->resolve($categoryId, $viewLevels, $language);
+        $scope = self::$taxonomies->resolve($categoryId, $viewLevels, $scopeLanguage);
         $allowed = array_fill_keys(array_map(static fn (TagNode $node): int => $node->id, $scope['nodes']), true);
         $rootIds = array_fill_keys(array_map(static fn (TagNode $node): int => $node->id, $scope['roots']), true);
         $start = null;
@@ -110,12 +114,27 @@ final class FacetedRoute
                 $query['lang'] = $language;
             }
 
-            return Route::_($query);
+            return Route::_('index.php?' . http_build_query($query));
         }
 
+        $parsed = (new FacetExpressionParser(FacetLimits::fromPlugin()))->parse($expression->expression());
+        if ($parsed === null) {
+            return '';
+        }
+
+        $app = Factory::getApplication();
+        self::$taxonomies = CategoryTaxonomyResolver::forApplication($app, Factory::getContainer()->get(DatabaseInterface::class));
+        $scopeLanguage = $language !== null && $language !== '*' ? $language : $app->getLanguage()->getTag();
+        $scope = self::$taxonomies->resolve($categoryId, array_values($app->getIdentity()->getAuthorisedViewLevels()), $scopeLanguage);
+        $resolved = (new TagPathResolver())->resolve($parsed, $scope['nodes']);
+        if ($resolved === null) {
+            return '';
+        }
+        $resolved = (new FacetExpressionCanonicalizer())->normalize($resolved, $scope['nodes']);
+        $public = $resolved->tags();
+        $canonical = $resolved->expression();
         $serializer = new SerializedExpression();
-        $public = $expression instanceof FacetExpression ? $expression->tags() : $expression;
-        $canonical = $expression->expression();
+
         $query = [
             'option' => 'com_content',
             'view' => 'category',
@@ -136,6 +155,9 @@ final class FacetedRoute
             $query['lang'] = $language;
         }
 
-        return Route::_($query);
+        // Joomla Router::createUri(array) merges ALL current parsed variables,
+        // including limitstart. A fresh explicit URI is essential for filter
+        // changes: otherwise clicking a new filter inherits the old page offset.
+        return Route::_('index.php?' . http_build_query($query));
     }
 }

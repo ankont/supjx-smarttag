@@ -52,6 +52,26 @@ $nodes = [
 
 $resolver = new TagPathResolver();
 $parser = new FacetExpressionParser();
+$limits = new \SuperSoft\Plugin\System\TagRouting\Configuration\FacetLimits();
+$assert($limits->allows(implode('+', array_fill(0, 10, 'a'))), 'Ten AND groups must be allowed.');
+$assert(!$limits->allows(implode('+', array_fill(0, 11, 'a'))), 'Eleven AND groups must be rejected.');
+$assert($limits->allows(implode(',', array_fill(0, 10, 'a'))), 'Ten OR options must be allowed.');
+$assert(!$limits->allows(implode(',', array_fill(0, 11, 'a'))), 'Eleven OR options must be rejected.');
+$assert($limits->allows(implode(',', array_fill(0, 10, 'a')) . '+' . implode(',', array_fill(0, 5, 'b'))), 'Fifteen total options must be allowed.');
+$assert(!$limits->allows(implode(',', array_fill(0, 10, 'a')) . '+' . implode(',', array_fill(0, 6, 'b'))), 'Sixteen total options must be rejected.');
+$single = new \SuperSoft\Plugin\System\TagRouting\Configuration\FacetLimits(1, 1, 1, 9);
+$assert($single->allows('root/leaf'), 'A hierarchical path must count as one option.');
+$assert(!$single->allows('root/leaff'), 'Expression byte limit was ignored.');
+$utf8 = new \SuperSoft\Plugin\System\TagRouting\Configuration\FacetLimits(1, 1, 1, 4);
+$assert($utf8->allows('αβ') && !$utf8->allows('αβγ'), 'UTF-8 length must count bytes.');
+$custom = \SuperSoft\Plugin\System\TagRouting\Configuration\FacetLimits::fromArray(['facet_max_groups' => 12, 'facet_max_or_options' => 12, 'facet_max_options' => 24, 'facet_max_bytes' => 1500]);
+$assert($custom->allows(implode('+', array_fill(0, 12, 'a'))), 'Configured limits were not applied.');
+$assert(!$custom->allows(implode('+', array_fill(0, 13, 'a'))), 'Configured AND maximum was ignored.');
+$clamped = new \SuperSoft\Plugin\System\TagRouting\Configuration\FacetLimits(999, 999, 999, 9999);
+$assert([$clamped->maxGroups, $clamped->maxOrOptions, $clamped->maxOptions, $clamped->maxBytes] === [16, 32, 512, 2048], 'Hard ceilings were ignored.');
+$minimum = new \SuperSoft\Plugin\System\TagRouting\Configuration\FacetLimits(0, -1, 0, 0);
+$assert([$minimum->maxGroups, $minimum->maxOrOptions, $minimum->maxOptions, $minimum->maxBytes] === [1, 1, 1, 1], 'Zero or negative values disabled protection.');
+$assert(!$limits->allows('a,,b') && !$limits->allows('a+') && !$limits->allows(''), 'Malformed expressions were allowed.');
 $nestedSyntax = $parser->parse('bible/parables');
 $nested = $nestedSyntax === null ? null : $resolver->resolve($nestedSyntax, $nodes);
 $assert($nested?->tags()->ids() === [[3]], 'Hierarchical path did not resolve to its leaf.');

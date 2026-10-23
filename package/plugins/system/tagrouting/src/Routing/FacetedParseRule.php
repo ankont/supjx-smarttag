@@ -6,10 +6,13 @@ namespace SuperSoft\Plugin\System\TagRouting\Routing;
 
 use Joomla\CMS\Application\SiteApplication;
 use Joomla\CMS\Component\Router\Rules\RulesInterface;
+use Joomla\CMS\Router\Exception\RouteNotFoundException;
+use Joomla\CMS\Language\Text;
 use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser;
 use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagExpressionNormalizer;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagPathResolver;
+use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionCanonicalizer;
 use SuperSoft\Plugin\System\TagRouting\Infrastructure\CategoryTaxonomyResolver;
 
 final readonly class FacetedParseRule implements RulesInterface
@@ -53,6 +56,13 @@ final readonly class FacetedParseRule implements RulesInterface
             return;
         }
 
+        $rawExpression = implode('/', $delimiter['segments']);
+        $parsed = $this->expressions->parse($rawExpression);
+
+        if ($parsed === null) {
+            throw new RouteNotFoundException(Text::_('JERROR_PAGE_NOT_FOUND'));
+        }
+
         $user = $this->app->getIdentity();
         $scope = $this->taxonomies->resolve(
             $categoryId,
@@ -64,9 +74,7 @@ final readonly class FacetedParseRule implements RulesInterface
             return;
         }
 
-        $rawExpression = implode('/', $delimiter['segments']);
-        $parsed = $this->expressions->parse($rawExpression);
-        $facets = $parsed === null ? null : $this->paths->resolve($parsed, $scope['nodes']);
+        $facets = $this->paths->resolve($parsed, $scope['nodes']);
 
         if ($facets === null) {
             // Leaving the segments untouched delegates failure to Joomla's normal
@@ -74,6 +82,7 @@ final readonly class FacetedParseRule implements RulesInterface
             return;
         }
 
+        $facets = (new FacetExpressionCanonicalizer())->normalize($facets, $scope['nodes']);
         $public = $facets->tags();
         $effective = $this->normalizer->normalize($public);
 
@@ -87,8 +96,9 @@ final readonly class FacetedParseRule implements RulesInterface
             $effective,
             $facets->expression(),
         );
+        FacetedRequest::remember($this->app, $vars[SerializedExpression::REQUEST_KEY]);
 
-        if (!$delimiter['canonical'] || str_replace(' ', '+', trim($rawExpression)) !== $parsed->canonical) {
+        if (!$delimiter['canonical'] || str_replace(' ', '+', trim($rawExpression)) !== $facets->expression()) {
             // Joomla's SEF plugin rebuilds tainted parsed variables and issues the
             // canonical redirect; FacetedBuildRule always emits the short marker.
             $this->app->getRouter()->setTainted();

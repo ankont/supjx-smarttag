@@ -21,17 +21,17 @@ package/
 The build creates three constituent ZIPs and wraps them in one installable package:
 
 ```text
-build/output/pkg_smarttag_v4.2.5.zip
+build/output/pkg_smarttag_v4.5.1.zip
 ```
 
 The internal identities remain `system/tagrouting`, `fields/tagselect`, and `com_tagrouting`. Installing the package therefore upgrades existing standalone copies instead of creating duplicates or losing their saved parameters and custom fields. Each extension keeps its own meaningful release line:
 
 | Extension | Version in this package |
 |---|---:|
-| `pkg_smarttag` | 4.2.5 |
-| `plg_system_tagrouting` | 4.0.6 |
+| `pkg_smarttag` | 4.5.1 |
+| `plg_system_tagrouting` | 4.3.0 |
 | `plg_fields_tagselect` | 1.7.2 |
-| `com_tagrouting` | 1.2.1 |
+| `com_tagrouting` | 1.4.1 |
 
 ## SmartTag Select custom field
 
@@ -44,6 +44,25 @@ After installation, enable **Fields - SuperSoftJx - SmartTag Select** and create
 - automatic frontend output as linked tags or plain text.
 
 When native tag handling is used, the plugin updates only the subset managed by that field and preserves unrelated native tags on the item. Existing `tagselect` fields continue to use the same field type and stored configuration after migration into the package.
+
+## Faceted complexity limits
+
+The [4.3.2 state-boundary review](docs/internal-state-4.3.2.md) defines public URL versus internal pagination state, view-switcher/transition contracts, and measured request-scope query optimizations.
+
+For canonical AND/OR URLs, pagination state, consumer contracts and local Joomla 6.2 regression coverage, see [the 4.3.1 routing investigation](docs/faceted-routing-4.3.1.md).
+
+The routing plugin settings expose maximum AND groups (default 10), OR options per group (10), total options (15), and decoded filter-expression bytes (1024). A slash-separated tag hierarchy counts as one option. Counts apply before logical simplification, including repeated options. Hard ceilings are 16, 32, 512, and 2048 respectively; values cannot disable the limits.
+
+Over-limit category routes return HTTP 404 before taxonomy queries. `FacetedRoute::get()` returns an empty string instead of generating an over-limit URL. Template controls should test a candidate expression before rendering a link:
+
+```php
+use SuperSoft\Plugin\System\TagRouting\Configuration\FacetLimits;
+
+$limits = FacetLimits::fromPlugin();
+$allowed = $limits->allows($candidateExpression); // string, FacetExpression or TagExpression
+```
+
+If disallowed, render a disabled control without an href and explain that a selection must be removed first. Keep removal and reset available. The template integration is separate from this package. Standalone tag pages do not use these limits. Complexity limits bound individual requests; robots rules and server rate limiting remain necessary to control crawling volume.
 
 ## Routing features
 
@@ -62,6 +81,8 @@ All eight combinations remain supported. A disabled feature attaches no correspo
 Create a menu item of type **SupJx SmartTag Pages**. It represents no particular tag and has no tag selector. Its full Joomla menu route is an explicit standalone namespace boundary.
 
 The **Page to display** option controls only the bare menu route:
+
+The menu item's **Options → Results per page** is the last Options field and sets the total page size for standalone tag pages using that context (default **30**, range 1–500). Clear it to inherit Joomla's global Default List Limit; its inline hint explains this. Existing menu items inherit 30 without resaving. Explicit valid `?limit=` takes precedence (including `limit=0` for All), as does a native posted page-size selection when GET is absent. Explicit limits survive pagination. Shared session choices do not override the menu/global default. One native pagination covers all content types, retaining view mode and explicit language. Feeds, native com_tags menu defaults and the bare landing page retain their existing behavior. See [the updated contract](docs/standalone-page-size-4.4.1.md).
 
 - **Virtual tag root (default):** renders Joomla's native `com_tags` tag view with no selected tag and zero content results. Its configurable page title and icon default to `Φίλτρο` and `fas fa-filter`. It uses the normal `html/com_tags/tag` template overrides and exposes `supjx_virtual_root=1`, `supjx_virtual_root_title`, and `supjx_virtual_root_icon` in the view parameters, allowing an override to render the top-level tag hierarchy.
 - **Top-level tags:** dispatches Joomla's native `com_tags` all-tags view with its root parent selected, so only top-level tags are listed. Its tag links pass through SmartTag routing and open the corresponding standalone hierarchical tag pages. Those pages are rendered by Joomla's native `com_tags` tag view and retain normal template-override support.
@@ -251,7 +272,7 @@ Build on Windows with:
 powershell -ExecutionPolicy Bypass -File build/build.ps1
 ```
 
-Install `build/output/pkg_smarttag_v4.2.5.zip`. Enable **SuperSoftJx - SmartTag Routing** for routing features and **Fields - SuperSoftJx - SmartTag Select** wherever the custom field type is needed. Configure routing in the system plugin's **Plugin** tab, and create a **SupJx SmartTag Pages** menu item if menu-aware standalone context is desired.
+Install `build/output/pkg_smarttag_v4.5.1.zip`. Enable **SuperSoftJx - SmartTag Routing** for routing features and **Fields - SuperSoftJx - SmartTag Select** wherever the custom field type is needed. Configure routing in the system plugin's **Plugin** tab, and create a **SupJx SmartTag Pages** menu item if menu-aware standalone context is desired.
 
 Tests:
 
@@ -276,3 +297,9 @@ The dependency-free suite covers feature isolation, compatibility defaults, conf
 - Existing non-marker `com_tags` routes are not globally redirected.
 - Faceted expressions support positive AND-of-OR groups only; no parentheses or NOT.
 - If several SupJx SmartTag Pages items exist for the same language, the lowest Itemid is the deterministic context/canonical default; use one such item per language when possible.
+
+## SmartTag Pages content types
+
+Menu Details include the native multiple **Content Type** selector. Empty means all types; selected types define a separate tag-page namespace. Scoped namespaces always use their menu route; the generic `/!/` marker remains unrestricted. Results per page remains the last option, default 30, with empty = global limit and explicit valid `?limit=` taking precedence.
+
+See [content-type scope and template contract](docs/tag-content-types-4.5.0.md), including the minimal optional Catichisi patch for unboxed single-type results. The package exposes presentation metadata; the site's existing override owns its markup.

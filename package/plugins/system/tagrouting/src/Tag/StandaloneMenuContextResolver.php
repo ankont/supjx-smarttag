@@ -18,9 +18,9 @@ final class StandaloneMenuContextResolver
     ) {
     }
 
-    public function find(string $language): ?StandaloneMenuContext
+    public function find(string $language, array $types = [], ?int $preferredItemId = null): ?StandaloneMenuContext
     {
-        return $this->selector->best($this->contexts(), $language);
+        return $this->selector->best($this->contexts(), $language, $types, $preferredItemId);
     }
 
     /** @param list<string> $segments */
@@ -41,7 +41,13 @@ final class StandaloneMenuContextResolver
         foreach ($this->menu->getItems('component', 'com_tagrouting') ?: [] as $item) {
             $query = is_array($item->query ?? null) ? $item->query : [];
 
-            if (($query['view'] ?? null) !== 'tags') {
+            // Virtual root temporarily delegates through the native tag view
+            // while the real menu component and namespace remain SmartTag.
+            $delegatedRoot = ($item->component ?? null) === 'com_tagrouting'
+                && ($query['option'] ?? null) === 'com_tags'
+                && ($query['view'] ?? null) === 'tag'
+                && empty($query['id']);
+            if (($query['view'] ?? null) !== 'tags' && !$delegatedRoot) {
                 continue;
             }
 
@@ -52,6 +58,7 @@ final class StandaloneMenuContextResolver
                 (string) ($item->language ?? '*'),
                 (bool) (int) ($params instanceof Registry ? $params->get('use_menu_route_canonical', 1) : 1),
                 (bool) (int) ($params instanceof Registry ? $params->get('bind_root_marker', 1) : 1),
+                ContentTypeScope::normalize($params instanceof Registry ? $params->get('content_types', []) : []),
             );
         }
 

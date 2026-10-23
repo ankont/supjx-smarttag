@@ -9,13 +9,17 @@ final class StandaloneMenuSelector
     /**
      * @param list<StandaloneMenuContext> $contexts
      */
-    public function best(array $contexts, string $language): ?StandaloneMenuContext
+    public function best(array $contexts, string $language, array $types = [], ?int $preferredItemId = null): ?StandaloneMenuContext
     {
-        $contexts = $this->forLanguage($contexts, $language);
+        $types = ContentTypeScope::normalize($types);
+        $contexts = array_values(array_filter($this->forLanguage($contexts, $language),
+            static fn (StandaloneMenuContext $context): bool => $context->contentTypes === $types));
         usort($contexts, static fn (StandaloneMenuContext $a, StandaloneMenuContext $b): int => [
+            $a->itemId === $preferredItemId ? 0 : 1,
             $a->language === $language ? 0 : 1,
             $a->itemId,
         ] <=> [
+            $b->itemId === $preferredItemId ? 0 : 1,
             $b->language === $language ? 0 : 1,
             $b->itemId,
         ]);

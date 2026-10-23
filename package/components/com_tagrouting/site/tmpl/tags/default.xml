@@ -4,7 +4,18 @@
         <message>COM_TAGROUTING_TAG_PAGES_MENU_DESC</message>
     </layout>
     <fields name="params">
-        <fieldset name="basic">
+        <fieldset name="request">
+            <field
+                name="content_types"
+                type="contenttype"
+                multiple="true"
+                layout="joomla.form.field.list-fancy-select"
+                filter="int_array"
+                label="COM_TAGROUTING_FIELD_CONTENT_TYPES_LABEL"
+                description="COM_TAGROUTING_FIELD_CONTENT_TYPES_DESC"
+            />
+        </fieldset>
+        <fieldset name="basic" label="JOPTIONS">
             <field
                 name="landing_page"
                 type="list"
@@ -32,6 +43,17 @@
                 label="COM_TAGROUTING_FIELD_LANDING_ICON_LABEL"
                 description="COM_TAGROUTING_FIELD_LANDING_ICON_DESC"
                 showon="landing_page:virtual_root"
+            />
+            <field
+                name="tag_page_limit"
+                type="number"
+                default="30"
+                min="1"
+                max="500"
+                filter="integer"
+                hint="COM_TAGROUTING_FIELD_TAG_PAGE_LIMIT_HINT"
+                label="COM_TAGROUTING_FIELD_TAG_PAGE_LIMIT_LABEL"
+                description="COM_TAGROUTING_FIELD_TAG_PAGE_LIMIT_DESC"
             />
         </fieldset>
         <fieldset name="advanced">

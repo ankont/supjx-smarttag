@@ -1,0 +1,11 @@
+{
+  "same_article_links_in_order": true,
+  "articles": 19,
+  "same_active_filter_paths": true,
+  "active_options": 4,
+  "before_scope_selects": 10,
+  "after_scope_selects": 4,
+  "before_resolve_calls": 288,
+  "after_resolve_calls": 288,
+  "note": "Counts cover only CategoryTaxonomyResolver SELECTs; this is not an all-query benchmark or load test."
+}

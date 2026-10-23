@@ -11,6 +11,7 @@ use Joomla\CMS\Component\Router\Rules\NomenuRules;
 use Joomla\CMS\Menu\AbstractMenu;
 use Joomla\Database\DatabaseInterface;
 use SuperSoft\Plugin\System\TagRouting\Configuration\RoutingFeatures;
+use SuperSoft\Plugin\System\TagRouting\Configuration\FacetLimits;
 use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser;
 use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagExpressionNormalizer;
@@ -57,11 +58,12 @@ final class Router extends \Joomla\Component\Content\Site\Service\Router
                 $delimiter = new FacetDelimiter($features->acceptedMarkers, $features->canonicalMarker);
                 // Both StandardRules and NomenuRules must build the real category
                 // path before virtual segments are appended.
-                $this->attachRule(new FacetedBuildRule($serializer, $delimiter));
+                $taxonomies = CategoryTaxonomyResolver::forApplication($app, $db);
+                $this->attachRule(new FacetedBuildRule($serializer, $delimiter, FacetLimits::fromPlugin(), $taxonomies, $app));
                 $this->attachRule(new FacetedParseRule(
                     $app,
-                    new CategoryTaxonomyResolver($db),
-                    new FacetExpressionParser(),
+                    $taxonomies,
+                    new FacetExpressionParser(FacetLimits::fromPlugin()),
                     new TagPathResolver(),
                     new TagExpressionNormalizer(),
                     $serializer,

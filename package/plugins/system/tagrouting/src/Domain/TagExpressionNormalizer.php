@@ -8,24 +8,9 @@ final class TagExpressionNormalizer
 {
     public function normalize(TagExpression $expression): TagExpression
     {
-        $groups = [];
-
-        foreach ($expression->groups as $group) {
-            $tags = array_values(array_filter(
-                $group->tags,
-                static function (TagNode $candidate) use ($group): bool {
-                    // A OR descendant(A) is simply A.
-                    foreach ($group->tags as $other) {
-                        if ($candidate->id !== $other->id && $other->contains($candidate)) {
-                            return false;
-                        }
-                    }
-
-                    return true;
-                },
-            ));
-            $groups[] = new TagGroup($tags);
-        }
+        // SQL tests exact IDs, not descendant closure. Do not infer membership
+        // from nested-set ancestry: an article may carry only the child tag.
+        $groups = $expression->groups;
 
         $result = [];
 
@@ -54,6 +39,8 @@ final class TagExpressionNormalizer
             }
         }
 
+        usort($result, static fn (TagGroup $a, TagGroup $b): int => strcmp(implode(',', $a->ids()), implode(',', $b->ids())));
+
         return new TagExpression($result);
     }
 
@@ -63,7 +50,7 @@ final class TagExpressionNormalizer
             $covered = false;
 
             foreach ($candidate->tags as $candidateTag) {
-                if ($candidateTag->contains($otherTag)) {
+                if ($candidateTag->id === $otherTag->id) {
                     $covered = true;
                     break;
                 }

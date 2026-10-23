@@ -70,7 +70,9 @@ final class SerializedExpression
 
         $parsed = (new FacetExpressionParser())->parse($expression);
 
-        if ($parsed === null || $parsed->canonical !== $expression) {
+        // Retain the original expression until configured limits are checked.
+        // In particular, duplicates must not reduce its raw complexity here.
+        if ($parsed === null) {
             return null;
         }
 

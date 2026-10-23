@@ -1,0 +1,68 @@
+{
+  "runtime": "Joomla 6.2.0 / PHP 8.4.26",
+  "result": "PASS",
+  "menus": "in-memory only; no DB writes",
+  "reports": [
+    {
+      "item": 141,
+      "scope": [],
+      "total": 191,
+      "types": [
+        "com_content.article",
+        "com_content.category"
+      ],
+      "second_page_items": 30,
+      "url": "/tag/age-group/primary.html",
+      "feed_limit": 10,
+      "single": false,
+      "model": "SuperSoft\\Plugin\\System\\TagRouting\\Tags\\Site\\Model\\TagModel"
+    },
+    {
+      "item": 90141,
+      "scope": [
+        1
+      ],
+      "total": 190,
+      "types": [
+        "com_content.article"
+      ],
+      "second_page_items": 30,
+      "url": "/article-tags/age-group/primary.html",
+      "feed_limit": 10,
+      "single": true,
+      "model": "SuperSoft\\Plugin\\System\\TagRouting\\Tags\\Site\\Model\\TagModel"
+    },
+    {
+      "item": 90142,
+      "scope": [
+        1,
+        5
+      ],
+      "total": 191,
+      "types": [
+        "com_content.article",
+        "com_content.category"
+      ],
+      "second_page_items": 30,
+      "url": "/mixed-tags/age-group/primary.html",
+      "feed_limit": 10,
+      "single": false,
+      "model": "SuperSoft\\Plugin\\System\\TagRouting\\Tags\\Site\\Model\\TagModel"
+    },
+    {
+      "item": 90143,
+      "scope": [
+        5
+      ],
+      "total": 1,
+      "types": [
+        "com_content.category"
+      ],
+      "second_page_items": 1,
+      "url": "/category-tags/age-group/primary.html",
+      "feed_limit": 10,
+      "single": true,
+      "model": "SuperSoft\\Plugin\\System\\TagRouting\\Tags\\Site\\Model\\TagModel"
+    }
+  ]
+}

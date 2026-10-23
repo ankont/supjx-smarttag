@@ -70,15 +70,23 @@ final readonly class StandaloneTagParseRule
             throw new RouteNotFoundException(Text::_('JERROR_PAGE_NOT_FOUND'));
         }
 
+        TagPageState::recordContext($this->app->getMenu(), $context?->itemId);
         $query = $uri->getQuery(true);
         $tainted = !$canonicalInput;
 
-        foreach (['option', 'view', 'id', 'Itemid', TagPageState::REQUEST_KEY] as $key) {
+        foreach (['option', 'view', 'id', 'Itemid', '__tagrouting', TagPageState::REQUEST_KEY] as $key) {
             if (array_key_exists($key, $query)) {
                 $tainted = true;
             }
 
             unset($query[$key]);
+        }
+
+        if ($context !== null && $context->contentTypes !== []) {
+            if (array_key_exists('types', $query)) {
+                $tainted = true;
+            }
+            unset($query['types']);
         }
 
         $query['option'] = 'com_tags';

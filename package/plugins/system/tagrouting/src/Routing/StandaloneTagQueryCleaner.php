@@ -18,6 +18,9 @@ final class StandaloneTagQueryCleaner
         'tmpl',
         'tag_id',
         'tag_preview',
+        '__tagrouting',
+        '__tagrouting_tag',
+        '__tagrouting_scope',
     ];
 
     /**

@@ -5,7 +5,7 @@
     <creationDate>2026-09</creationDate>
     <copyright>© 2026 SuperSoft — Kontarinis Andreas</copyright>
     <license>GNU General Public License version 2 or later</license>
-    <version>4.0.6</version>
+    <version>4.3.0</version>
     <description>PLG_SYSTEM_TAGROUTING_XML_DESCRIPTION</description>
     <namespace path="src">SuperSoft\Plugin\System\TagRouting</namespace>
     <files>
@@ -49,6 +49,31 @@
                     <option value="0">JNO</option>
                     <option value="1">JYES</option>
                 </field>
+                <field
+                    name="facet_max_groups"
+                    type="number" default="10" min="1" max="16" filter="integer"
+                    showon="enable_faceted:1"
+                    label="PLG_SYSTEM_TAGROUTING_MAX_GROUPS_LABEL"
+                    description="PLG_SYSTEM_TAGROUTING_MAX_GROUPS_DESC"
+                />
+                <field name="facet_max_or_options"
+                    type="number" default="10" min="1" max="32" filter="integer"
+                    showon="enable_faceted:1"
+                    label="PLG_SYSTEM_TAGROUTING_MAX_OR_LABEL"
+                    description="PLG_SYSTEM_TAGROUTING_MAX_OR_DESC"
+                />
+                <field name="facet_max_options"
+                    type="number" default="15" min="1" max="512" filter="integer"
+                    showon="enable_faceted:1"
+                    label="PLG_SYSTEM_TAGROUTING_MAX_OPTIONS_LABEL"
+                    description="PLG_SYSTEM_TAGROUTING_MAX_OPTIONS_DESC"
+                />
+                <field name="facet_max_bytes"
+                    type="number" default="1024" min="1" max="2048" filter="integer"
+                    showon="enable_faceted:1"
+                    label="PLG_SYSTEM_TAGROUTING_MAX_BYTES_LABEL"
+                    description="PLG_SYSTEM_TAGROUTING_MAX_BYTES_DESC"
+                />
                 <field
                     name="accepted_markers"
                     type="checkboxes"

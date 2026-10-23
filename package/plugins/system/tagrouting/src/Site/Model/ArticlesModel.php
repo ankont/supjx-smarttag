@@ -5,16 +5,38 @@ declare(strict_types=1);
 namespace SuperSoft\Plugin\System\TagRouting\Site\Model;
 
 use Joomla\CMS\Factory;
-use SuperSoft\Plugin\System\TagRouting\Domain\SerializedExpression;
+use SuperSoft\Plugin\System\TagRouting\Routing\FacetedRequest;
 use SuperSoft\Plugin\System\TagRouting\Infrastructure\CategoryTaxonomyResolver;
 
 final class ArticlesModel extends \Joomla\Component\Content\Site\Model\ArticlesModel
 {
+    public function getPagination()
+    {
+        $pagination = parent::getPagination();
+        $app = Factory::getApplication();
+        $input = $app->getInput();
+        $state = FacetedRequest::current();
+        $categoryIds = array_map('intval', (array) $this->getState('filter.category_id'));
+        if ($state !== null && $input->getCmd('option') === 'com_content'
+            && $input->getCmd('view') === 'category' && in_array($state['category'], $categoryIds, true)) {
+            $pagination->setAdditionalUrlParam('__tagrouting', FacetedRequest::serialized());
+        }
+        // Offsets are owned by Pagination; only carry presentation and language.
+        foreach (['cat-view', 'lang'] as $key) {
+            $value = $key === 'cat-view' ? (string) $input->get->get($key, '', 'cmd') : $input->getCmd($key);
+            if ($value !== '') {
+                $pagination->setAdditionalUrlParam($key, $value);
+            }
+        }
+
+        return $pagination;
+    }
+
     protected function getListQuery()
     {
         $query = parent::getListQuery();
         $input = Factory::getApplication()->getInput();
-        $state = (new SerializedExpression())->decode($input->getString(SerializedExpression::REQUEST_KEY));
+        $state = FacetedRequest::current();
         $categoryState = $this->getState('filter.category_id');
         $categoryIds = is_array($categoryState) ? array_map('intval', $categoryState) : [(int) $categoryState];
 
@@ -29,7 +51,7 @@ final class ArticlesModel extends \Joomla\Component\Content\Site\Model\ArticlesM
 
         $db = $this->getDatabase();
         $app = Factory::getApplication();
-        $scope = (new CategoryTaxonomyResolver($db))->resolve(
+        $scope = CategoryTaxonomyResolver::forApplication($app, $db)->resolve(
             $state['category'],
             array_values($app->getIdentity()->getAuthorisedViewLevels()),
             $app->getLanguage()->getTag(),

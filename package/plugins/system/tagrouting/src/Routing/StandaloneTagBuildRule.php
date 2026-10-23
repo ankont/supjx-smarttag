@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SuperSoft\Plugin\System\TagRouting\Routing;
 
 use Joomla\CMS\Application\SiteApplication;
+use SuperSoft\Plugin\System\TagRouting\Tag\ContentTypeScope;
 use Joomla\CMS\Language\LanguageHelper;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\SiteRouter;
@@ -63,7 +64,17 @@ final readonly class StandaloneTagBuildRule
             $canonical[] = $built[0];
         }
 
-        $context = $this->menus->find($language);
+        $scope = $query[TagPageState::SCOPE_KEY] ?? [];
+        $types = ContentTypeScope::normalize(is_array($scope) ? ($scope['types'] ?? []) : []);
+        $preferred = is_array($scope) ? TagPageState::id($scope['item'] ?? null) : null;
+        $context = $this->menus->find($language, $types, $preferred);
+        // No namespace for this native type restriction: retain it as public query.
+        if ($context === null && $types !== []) {
+            $context = $this->menus->find($language);
+            $query['types'] = $types;
+        } else {
+            unset($query['types']);
+        }
         $base = $context !== null && $context->usesMenuRoute()
             ? $context->routeSegments
             : [$this->markers->canonical()];
