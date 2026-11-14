@@ -5,6 +5,7 @@ namespace Joomla\Registry {
     class Registry {
         public function __construct(private array $values = []) {}
         public function get($key, $default = null) { return $this->values[$key] ?? $default; }
+        public function toArray() { return $this->values; }
     }
 }
 namespace Joomla\CMS\Menu {
@@ -35,7 +36,7 @@ namespace Joomla\CMS\Router {
 namespace Joomla\CMS\Router\Exception { class RouteNotFoundException extends \RuntimeException {} }
 namespace Joomla\CMS\Language { class Text { public static function _($v) { return $v; } } }
 namespace Joomla\CMS\Plugin {
-    class PluginHelper { public static function isEnabled(...$args) { return false; } }
+    class PluginHelper { public static function isEnabled(...$args) { return false; } public static function getPlugin(...$args) { return (object) ['params'=>[]]; } }
 }
 namespace Joomla\CMS\Uri {
     class Uri {
@@ -49,6 +50,7 @@ namespace Joomla\CMS\Uri {
 }
 namespace SuperSoft\Plugin\System\TagRouting\Tag {
     class TagHierarchyRepository {
+        public static int $lookups = 0;
         public function pathForId($id, $levels, $language) {
             if ($levels !== [1] || $language !== 'el-GR') { throw new \RuntimeException('ACL/language context lost.'); }
             return new class {
@@ -57,6 +59,7 @@ namespace SuperSoft\Plugin\System\TagRouting\Tag {
             };
         }
         public function resolvePath($aliases, $levels, $language) {
+            ++self::$lookups;
             if ($aliases !== ['age-group','primary']) { throw new \RuntimeException('Hierarchy order changed.'); }
             return $this->pathForId(7, $levels, $language);
         }
@@ -152,5 +155,14 @@ namespace {
     $assert($markerScope['types'] === [], 'Unbound marker inherited a scoped home/active menu.');
     \SuperSoft\Plugin\System\TagRouting\Routing\TagPageState::reset($onlyScoped);
     $assert(\SuperSoft\Plugin\System\TagRouting\Routing\StandaloneTagScope::capture($onlyScoped,$base)['types'] === [1], 'Parse context survived explicit request reset.');
+    $before = TagHierarchyRepository::$lookups;
+    foreach (['!', '!filter', '!tag'] as $marker) {
+        foreach ([implode('+', array_fill(0, 11, 'a')), implode(',', array_fill(0, 11, 'a')), 'a++b'] as $raw) {
+            $uri = new Uri([], 'tag/age-group/primary/' . $marker . '/' . $raw);
+            try { $invalidRouter = new SiteRouter(); $parse($invalidRouter, $uri); $assert(false, 'Invalid raw extras accepted.'); }
+            catch (\Joomla\CMS\Router\Exception\RouteNotFoundException) { $assert(true, 'Rejected.'); }
+        }
+    }
+    $assert(TagHierarchyRepository::$lookups === $before, 'Invalid extra filters reached base-tag lookup.');
     echo "OK ({$assertions} assertions; isolated standalone type-scope routing)\n";
 }

@@ -30,6 +30,9 @@ final class MenuTagContextResolver
             return false;
         }
 
+        if (isset($query[\SuperSoft\Plugin\System\TagRouting\Routing\TagFilterRequest::KEY])) {
+            return false; // Explicit standalone filter namespace must survive native menu cleanup.
+        }
         $isTags = $option === 'com_tags';
         $requested = $this->states->from($query, $isTags);
 

@@ -10,6 +10,7 @@ use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagExpressionNormalizer;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagNode;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagPathResolver;
+use SuperSoft\Plugin\System\TagRouting\Domain\FacetMembership;
 
 $fixture = [
     new TagNode(1, 'root', 0, 1, 10, 1),
@@ -31,7 +32,7 @@ foreach (['a+b', 'b+a', 'a,a+b', 'a+b+a', 'root/a+b', 'b+root/a+a'] as $raw) {
     $assert($canonical($raw)?->expression() === 'a+b', 'Equivalent form did not canonicalize: ' . $raw);
 }
 $assert($parse->parse('b+a,a')->canonical === 'a+b', 'Parser structural canonicalization failed.');
-$assert($canonical('a,b+a')->expression() === 'a', 'Exact Boolean absorption failed.');
+$assert($canonical('a,b+a')->expression() === 'a+a,b', 'Canonicalization discarded a user-selected OR alternative.');
 $assert($canonical('a/child+b/child')->expression() === 'a/child+b/child', 'Hierarchy ordering/qualification was lost.');
 $assert($canonical('child') === null && $canonical('child/a') === null, 'Ambiguous/reversed path was accepted.');
 $assert($canonical('a+a/child')->expression() === 'a+a/child', 'Ancestor was incorrectly implied by its child.');
@@ -57,10 +58,21 @@ foreach ($forms as $raw) {
         $before = $matches($resolved->tags());
         $assert($before === $matches($normalized->tags()), 'Canonicalization changed exact-membership results: ' . $raw);
         $assert($before === $matches((new TagExpressionNormalizer())->normalize($resolved->tags())), 'Domain normalization changed exact-membership results: ' . $raw);
+        foreach ([false, true] as $descendants) {
+            $beforeGroups = FacetMembership::groups($resolved->tags()->ids(), $fixture, $descendants);
+            $afterGroups = FacetMembership::groups($normalized->tags()->ids(), $fixture, $descendants);
+            $matchGroups = static function (array $groups) use ($tagged): bool {
+                foreach ($groups as $group) { if (array_intersect($tagged, $group) === []) { return false; } }
+                return true;
+            };
+            $assert($matchGroups($beforeGroups) === $matchGroups($afterGroups), 'Canonicalization changed descendant-mode results.');
+        }
         ++$evaluations;
     }
 }
 $assert(!$parse->parse(implode('+', array_fill(0, 11, 'a'))), 'Duplicate groups bypassed raw limits.');
 $assert(!$parse->parse(implode(',', array_fill(0, 11, 'a'))), 'Duplicate options bypassed raw limits.');
 $assert(!$parse->parse('a,,b') && !$parse->parse('a++b'), 'Malformed syntax accepted.');
+$assert(FacetMembership::groups([[2]], [$fixture[1]], true) === [[2]], 'Descendant matching escaped visible scope.');
+$assert(FacetMembership::groups([[2]], $fixture, true) === [[2,3]], 'Descendant matching failed.');
 echo "OK ({$evaluations} exhaustive exact-membership evaluations; {$assertions} assertions)\n";

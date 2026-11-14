@@ -18,7 +18,7 @@ final readonly class InternalQueryBoundary
     {
         $query = $uri->getQuery(true);
         $changed = false;
-        foreach ([SerializedExpression::REQUEST_KEY, TagPageState::REQUEST_KEY, TagPageState::SCOPE_KEY] as $key) {
+        foreach ([SerializedExpression::REQUEST_KEY, TagPageState::REQUEST_KEY, TagPageState::SCOPE_KEY, TagFilterRequest::KEY] as $key) {
             if (array_key_exists($key, $query)) {
                 unset($query[$key]);
                 $changed = true;
@@ -39,5 +39,6 @@ final readonly class InternalQueryBoundary
         $uri->delVar(SerializedExpression::REQUEST_KEY);
         $uri->delVar(TagPageState::REQUEST_KEY);
         $uri->delVar(TagPageState::SCOPE_KEY);
+        $uri->delVar(TagFilterRequest::KEY);
     }
 }

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <fieldset name="smarttag_routing" label="PLG_SYSTEM_TAGROUTING_OPTIONS_TAB" addfieldprefix="SuperSoft\Plugin\System\TagRouting\Field">
+        <field name="smarttag_routing_help" type="HelpSummary" class="alert alert-info" filter="unset" />
+        <field name="smarttag_enable_cleanup" type="radio" layout="joomla.form.field.radio.switcher" default="1" label="PLG_SYSTEM_TAGROUTING_FIELD_CLEANUP_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_CLEANUP_DESC">
+            <option value="0">JNO</option>
+            <option value="1">JYES</option>
+        </field>
+        <field name="smarttag_enable_hierarchical" type="radio" layout="joomla.form.field.radio.switcher" default="0" label="PLG_SYSTEM_TAGROUTING_FIELD_HIERARCHICAL_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_HIERARCHICAL_DESC">
+            <option value="0">JNO</option>
+            <option value="1">JYES</option>
+        </field>
+        <field name="smarttag_enable_faceted" type="radio" layout="joomla.form.field.radio.switcher" default="1" label="PLG_SYSTEM_TAGROUTING_FIELD_FACETED_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_FACETED_DESC">
+            <option value="0">JNO</option>
+            <option value="1">JYES</option>
+        </field>
+        <field name="smarttag_facet_scope" type="list" default="category" showon="smarttag_enable_faceted:1" label="PLG_SYSTEM_TAGROUTING_FACET_SCOPE_LABEL" description="PLG_SYSTEM_TAGROUTING_FACET_SCOPE_DESC">
+            <option value="category">PLG_SYSTEM_TAGROUTING_SCOPE_CATEGORY</option>
+            <option value="inherited">PLG_SYSTEM_TAGROUTING_SCOPE_INHERITED</option>
+            <option value="all">PLG_SYSTEM_TAGROUTING_SCOPE_ALL</option>
+        </field>
+        <field name="smarttag_facet_include_descendants" type="radio" layout="joomla.form.field.radio.switcher" default="0" showon="smarttag_enable_faceted:1[OR]smarttag_enable_hierarchical:1" label="PLG_SYSTEM_TAGROUTING_DESCENDANTS_LABEL" description="PLG_SYSTEM_TAGROUTING_DESCENDANTS_DESC">
+            <option value="0">JNO</option>
+            <option value="1">JYES</option>
+        </field>
+        <field name="smarttag_facet_max_groups" type="number" default="10" min="1" max="16" filter="integer" showon="smarttag_enable_faceted:1[OR]smarttag_enable_hierarchical:1" label="PLG_SYSTEM_TAGROUTING_MAX_GROUPS_LABEL" description="PLG_SYSTEM_TAGROUTING_MAX_GROUPS_DESC" />
+        <field name="smarttag_facet_max_or_options" type="number" default="10" min="1" max="32" filter="integer" showon="smarttag_enable_faceted:1[OR]smarttag_enable_hierarchical:1" label="PLG_SYSTEM_TAGROUTING_MAX_OR_LABEL" description="PLG_SYSTEM_TAGROUTING_MAX_OR_DESC" />
+        <field name="smarttag_facet_max_options" type="number" default="15" min="1" max="512" filter="integer" showon="smarttag_enable_faceted:1[OR]smarttag_enable_hierarchical:1" label="PLG_SYSTEM_TAGROUTING_MAX_OPTIONS_LABEL" description="PLG_SYSTEM_TAGROUTING_MAX_OPTIONS_DESC" />
+        <field name="smarttag_facet_max_bytes" type="number" default="1024" min="1" max="2048" filter="integer" showon="smarttag_enable_faceted:1[OR]smarttag_enable_hierarchical:1" label="PLG_SYSTEM_TAGROUTING_MAX_BYTES_LABEL" description="PLG_SYSTEM_TAGROUTING_MAX_BYTES_DESC" />
+        <field name="smarttag_accepted_markers" type="MarkerControls" multiple="true" showon="smarttag_enable_hierarchical:1[OR]smarttag_enable_faceted:1" label="PLG_SYSTEM_TAGROUTING_FIELD_ACCEPTED_MARKERS_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_ACCEPTED_MARKERS_DESC" filter="array" default="!,!tag,!filter">
+            </field>
+        <field name="smarttag_custom_marker" type="text" default="" filter="raw" label="PLG_SYSTEM_TAGROUTING_FIELD_CUSTOM_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_CUSTOM_MARKER_DESC" size="12" class="input-small" showon="smarttag_accepted_markers.custom_enabled:1" />
+        <field name="smarttag_canonical_marker" type="list" default="!" showon="smarttag_enable_hierarchical:1[OR]smarttag_enable_faceted:1" label="PLG_SYSTEM_TAGROUTING_FIELD_CANONICAL_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_CANONICAL_MARKER_DESC">
+            <option value="!">PLG_SYSTEM_TAGROUTING_MARKER_SHORT</option>
+            <option value="!tag">PLG_SYSTEM_TAGROUTING_MARKER_TAG</option>
+            <option value="!filter">PLG_SYSTEM_TAGROUTING_MARKER_FILTER</option>
+            <option value="__custom__">PLG_SYSTEM_TAGROUTING_MARKER_CUSTOM</option>
+        </field>
+        <field name="smarttag_show_breadcrumb_marker" type="radio" layout="joomla.form.field.radio.switcher" default="1" showon="smarttag_enable_hierarchical:1" label="PLG_SYSTEM_TAGROUTING_FIELD_SHOW_BREADCRUMB_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_SHOW_BREADCRUMB_MARKER_DESC">
+            <option value="0">JNO</option>
+            <option value="1">JYES</option>
+        </field>
+        <field name="smarttag_breadcrumb_marker" type="text" default="" hint="#" filter="raw" showon="smarttag_enable_hierarchical:1[AND]smarttag_show_breadcrumb_marker:1" label="PLG_SYSTEM_TAGROUTING_FIELD_BREADCRUMB_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_BREADCRUMB_MARKER_DESC" />
+    </fieldset>
+</form>

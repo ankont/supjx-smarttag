@@ -55,7 +55,7 @@ namespace {
         public function getInput() { return $this; }
         public function getMenu() { return $this; }
         public function getActive() { return $this->menu; }
-        public function getCmd($key) { return $key === 'view' ? $this->view : ($key === 'option' ? 'com_tags' : ($key === 'cat-view' ? $this->derivedView : '')); }
+        public function getCmd($key) { return $key === 'view' ? $this->view : ($key === 'option' ? 'com_tags' : ($key === 'cat-view' ? $this->derivedView : ($this->query[$key] ?? ''))); }
         public function getWord($key) { return $this->format; }
     };
     foreach ([[null,30], [60,60], ['',500], [0,500], [-1,30], [999,500]] as [$value, $expected]) {
@@ -124,5 +124,14 @@ namespace {
             $assert($app->params->get('supjx_content_types') === null, 'Scope leaked to shared params.');
         }
     }
+    $app->format = 'html';
+    $app->query = ['content-types'=>'com_content.category,com_content.article,com_content.article', 'content-category'=>'9', 'cat-view'=>'details', 'lang'=>'el-GR'];
+    $filtered = new \SuperSoft\Plugin\System\TagRouting\Tags\Site\Model\TagModel();
+    $params = $filtered->getPagination()->params;
+    $assert($params['content-types'] === 'com_content.article,com_content.category' && $params['content-category'] === 9, 'Pagination lost normalized query filters.');
+    $assert($params['lang'] === 'el-GR' && $params['cat-view'] === 'details', 'Pagination lost view/language.');
+    $assert(!isset($params['start']) && !isset($params['limitstart']), 'Query filter copied a stale offset.');
+    $app->query = [];
+    $assert(!isset((new \SuperSoft\Plugin\System\TagRouting\Tags\Site\Model\TagModel())->getPagination()->params['content-types']), 'Filters leaked between model requests.');
     echo "OK ({$assertions} assertions; standalone menu page-size contracts)\n";
 }

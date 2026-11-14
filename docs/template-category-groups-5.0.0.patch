@@ -1,0 +1,53 @@
+--- a/templates/site/jl_kidsacademy_free/html/com_tags/tag/default_items.php
++++ b/templates/site/jl_kidsacademy_free/html/com_tags/tag/default_items.php
+@@ -19,13 +19,20 @@
+     default => 'jl-child-width-1-1',
+ };
+ $groups = ['articles' => [], 'categories' => [], 'other' => []];
++$groupByCategory = (bool) $this->params->get('supjx_group_article_categories', false);
++$groupKinds = [];
++$groupTitles = [];
+ $currentTags = array_values(array_filter((array) ($this->item ?? []), 'is_object'));
+ $escape = static fn($value): string => htmlspecialchars((string) $value, ENT_COMPAT, 'UTF-8');
+ 
+ foreach ((array) ($this->items ?? []) as $item) {
+     $type = (string) ($item->type_alias ?? '');
+-    $group = $type === 'com_content.article' ? 'articles' : ($type === 'com_content.category' ? 'categories' : 'other');
++    $kind = $type === 'com_content.article' ? 'articles' : ($type === 'com_content.category' ? 'categories' : 'other');
++    $group = $groupByCategory ? (string) ($item->supjx_group_key ?? $kind) : $kind;
++    $groups[$group] ??= [];
+     $groups[$group][] = $item;
++    $groupKinds[$group] = $kind;
++    $groupTitles[$group] = (string) ($item->supjx_group_title ?? $type);
+ }
+ 
+ $normaliseArticle = static function (object $item) use ($currentTags): object {
+@@ -56,8 +63,9 @@
+     'categories' => Text::_('TPL_JL_KIDSACADEMY_FREE_TAG_RESULTS_CATEGORIES'),
+     'other' => Text::_('TPL_JL_KIDSACADEMY_FREE_TAG_RESULTS_OTHER'),
+ ];
++if ($groupByCategory) { $sections = $groupTitles; }
+ $first = true;
+-$singleType = (bool) $this->params->get('supjx_single_content_type', false);
++$singleType = (bool) $this->params->get('supjx_single_content_type', false) && !$groupByCategory;
+ ?>
+ <?php if (!empty($this->items)) : ?>
+     <div class="tag-results">
+@@ -74,7 +82,7 @@
+             <?php endif; ?>
+                 <?php // Keep the body wrapper: grid and mobile switcher rules depend on it. ?>
+                 <div class="tag-results__body">
+-                    <?php if ($key === 'articles') : ?>
++                    <?php if (($groupKinds[$key] ?? $key) === 'articles') : ?>
+                         <?php echo LayoutHelper::render('library.view-switcher', [
+                             'active' => $viewMode,
+                             'sort' => $this->librarySort ?? [],
+@@ -96,7 +104,7 @@
+                                 </div>
+                             <?php endforeach; ?>
+                         </div>
+-                    <?php elseif ($key === 'categories') : ?>
++                    <?php elseif (($groupKinds[$key] ?? $key) === 'categories') : ?>
+                         <div class="library-category-grid">
+                             <?php foreach ($groups[$key] as $item) : ?>
+                                 <?php $category = Categories::getInstance('Content', ['access' => true])->get((int) ($item->content_item_id ?? 0)); ?>

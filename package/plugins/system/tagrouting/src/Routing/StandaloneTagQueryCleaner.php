@@ -21,6 +21,7 @@ final class StandaloneTagQueryCleaner
         '__tagrouting',
         '__tagrouting_tag',
         '__tagrouting_scope',
+        '__tagrouting_extra',
     ];
 
     /**

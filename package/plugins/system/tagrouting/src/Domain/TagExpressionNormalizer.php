@@ -6,8 +6,14 @@ namespace SuperSoft\Plugin\System\TagRouting\Domain;
 
 final class TagExpressionNormalizer
 {
-    public function normalize(TagExpression $expression): TagExpression
+    public function normalize(TagExpression $expression, bool $preserveSelections = false): TagExpression
     {
+        if ($preserveSelections) {
+            $unique = [];
+            foreach ($expression->groups as $group) { $unique[implode(',', $group->ids())] = $group; }
+            ksort($unique, SORT_STRING);
+            return new TagExpression(array_values($unique));
+        }
         // SQL tests exact IDs, not descendant closure. Do not infer membership
         // from nested-set ancestry: an article may carry only the child tag.
         $groups = $expression->groups;

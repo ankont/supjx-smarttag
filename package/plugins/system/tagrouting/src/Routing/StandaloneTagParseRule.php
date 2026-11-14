@@ -59,6 +59,22 @@ final readonly class StandaloneTagParseRule
             $canonicalInput = $context->usesMenuRoute();
         }
 
+        $extra = null;
+        foreach ($aliases as $index => $alias) {
+            if (str_starts_with($alias, '!')) {
+                // Root-marker standalone URLs deliberately do not accept a second marker.
+                if ($marker !== null || $context === null) { throw new RouteNotFoundException(Text::_('JERROR_PAGE_NOT_FOUND')); }
+                $extra = $this->markers->extract(array_slice($aliases, $index));
+                if ($extra === null) { throw new RouteNotFoundException(Text::_('JERROR_PAGE_NOT_FOUND')); }
+                if ((new \SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser(
+                    \SuperSoft\Plugin\System\TagRouting\Configuration\FacetLimits::fromPlugin()
+                ))->parse(implode('/', $extra['segments'])) === null) {
+                    throw new RouteNotFoundException(Text::_('JERROR_PAGE_NOT_FOUND'));
+                }
+                $aliases = array_slice($aliases, 0, $index);
+                break;
+            }
+        }
         $this->assertValidPath($aliases);
         $resolved = $this->tags->resolvePath(
             $aliases,
@@ -70,9 +86,20 @@ final readonly class StandaloneTagParseRule
             throw new RouteNotFoundException(Text::_('JERROR_PAGE_NOT_FOUND'));
         }
 
+        $extraState = null;
+        if ($extra !== null) {
+            try {
+                $extraState = (new \SuperSoft\Plugin\System\TagRouting\Tag\StandaloneFacetResolver(
+                    $this->app, \Joomla\CMS\Factory::getContainer()->get(\Joomla\Database\DatabaseInterface::class)
+                ))->resolve($resolved->id(), $context->itemId, implode('/', $extra['segments']), $language);
+            } catch (\InvalidArgumentException) { throw new RouteNotFoundException(Text::_('JERROR_PAGE_NOT_FOUND')); }
+            TagFilterRequest::remember($this->app, $extraState);
+        }
         TagPageState::recordContext($this->app->getMenu(), $context?->itemId);
         $query = $uri->getQuery(true);
-        $tainted = !$canonicalInput;
+        $tainted = !$canonicalInput || ($extraState !== null &&
+            (!$extra['canonical'] || str_replace(' ', '+', implode('/', $extra['segments'])) !== $extraState['expression']));
+        if ($extraState !== null) { $query[TagFilterRequest::KEY] = TagFilterRequest::encode($extraState); }
 
         foreach (['option', 'view', 'id', 'Itemid', '__tagrouting', TagPageState::REQUEST_KEY] as $key) {
             if (array_key_exists($key, $query)) {

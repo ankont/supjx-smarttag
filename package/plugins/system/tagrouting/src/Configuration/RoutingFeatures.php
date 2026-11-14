@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace SuperSoft\Plugin\System\TagRouting\Configuration;
 
-use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\Registry\Registry;
 
 final readonly class RoutingFeatures
@@ -35,7 +34,7 @@ final readonly class RoutingFeatures
         $customMarker = self::safeMarker((string) ($values['custom_marker'] ?? ''));
         $accepted = self::accepted($values['accepted_markers'] ?? self::DEFAULT_ACCEPTED_MARKERS);
 
-        if (self::enabled($values, 'enable_custom_marker', false) && $customMarker !== null) {
+        if ((self::enabled($values, 'enable_custom_marker', false) || in_array('__custom__', (array) ($values['accepted_markers'] ?? []), true)) && $customMarker !== null) {
             $accepted[] = $customMarker;
         }
 
@@ -78,9 +77,7 @@ final readonly class RoutingFeatures
 
     public static function fromPlugin(): self
     {
-        $plugin = PluginHelper::getPlugin('system', 'tagrouting');
-
-        return self::fromRegistry(new Registry($plugin->params ?? ''));
+        return self::fromRegistry(RoutingOptions::get());
     }
 
     public function needsContentRouter(): bool

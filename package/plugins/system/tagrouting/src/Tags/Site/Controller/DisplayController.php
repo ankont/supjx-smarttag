@@ -11,6 +11,9 @@ final class DisplayController extends \Joomla\Component\Tags\Site\Controller\Dis
     {
         $registered = clone ($this->app->registeredurlparams ?? new \stdClass());
         $registered->types = 'ARRAY';
+        $registered->__tagrouting_extra = 'STRING';
+        $registered->{'content-types'} = 'STRING';
+        $registered->{'content-category'} = 'STRING';
         $registered->{'cat-view'} = 'CMD';
         $this->app->registeredurlparams = $registered;
 

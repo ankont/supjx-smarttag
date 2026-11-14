@@ -1,5 +1,57 @@
 # Changelog
 
+## 5.1.6 - 2026-11-14
+
+- Keep the four native marker switches on their own row. Show Custom marker as a separately aligned native field only when Custom is enabled, retaining its value while hidden.
+- Package/routing 5.1.6; component remains 1.6.2 and SmartTag Select remains 1.7.2.
+
+## 5.1.5 - 2026-11-14
+
+- Open the How to use link in the same browser tab.
+- Package/routing 5.1.5; component remains 1.6.2 and SmartTag Select remains 1.7.2.
+
+## 5.1.4 - 2026-11-14
+
+- Move the full user guide to an always-visible How to use tab in the plugin editor. Tags Options now shows a short permanent info paragraph with a direct new-tab link to that guide. Individual field descriptions remain under Inline Help.
+- Expand setup guidance and replace site-specific examples with neutral Colour/Blue/Red and Topics/Travel examples across shipped help text.
+- Package/routing 5.1.4; component 1.6.2; SmartTag Select remains 1.7.2.
+
+## 5.1.3 - 2026-11-14
+
+- Add an Inline Help overview in both SmartTag configuration forms, with user-facing examples of standalone pages and category/tag filters. Expand difficult field descriptions and menu help without implementation details.
+- Use native Joomla Inline Help visibility; the plugin editor already supplies its toolbar button.
+- Package/routing 5.1.3; component 1.6.1; SmartTag Select remains 1.7.2.
+
+## 5.1.2 - 2026-11-14
+
+- Render marker toggles using Joomla's native radio switcher layout and stylesheet. Show the marker instead of visible Yes/No labels, retaining accessible state labels.
+- Add a matching Custom switch; switching it off retains the custom text without accepting that marker.
+- Package/routing 5.1.2; component remains 1.6.0 and SmartTag Select remains 1.7.2.
+
+## 5.1.1 - 2026-11-14
+
+- Replace marker multi-select with three inline, labelled native Bootstrap switches and a compact Custom marker textbox. Nonempty custom text enables it; clearing it disables it. Convert submitted controls to the existing plugin parameter schema in both forms.
+- Remove the internal implementation banner from Tags Options. Users without plugin edit permission continue to see no SmartTag tab.
+- Package/routing 5.1.1; component remains 1.6.0 and SmartTag Select remains 1.7.2.
+
+## 5.1.0 - 2026-11-14
+
+- Expose SmartTag Routing settings in a Tags Options tab while retaining the plugin's own form and plugin-only parameter storage. The native Tags Save updates both extension records in one transaction; routing fields are removed from the Tags record before storage. Preserve plugin edit permissions and roll back incomplete saves.
+- Use native multiple-list routing marker selection with Custom as the fourth option. Preserve existing custom-marker settings and empty breadcrumb marker values.
+- Additional tag-filter descendants now support Use Default (effective Yes/No), Yes and No, inheriting the global SmartTag setting.
+- Package/routing 5.1.0; component 1.6.0; SmartTag Select remains 1.7.2.
+
+## 5.0.0 - 2026-11-14
+
+- Add optional public tag-page query filters: `content-types` (comma-separated registered UCM aliases) and `content-category` (one exact article category). Applied before totals, pagination and feeds, intersecting existing menu/native restrictions.
+- Reject malformed/unknown filters and inaccessible, unpublished or wrong-language categories; preserve pagination filters and separate model/view cache keys. No template UI changes.
+- Add optional inherited/all-tag category taxonomy scopes and descendant matching. Existing category-only/exact defaults remain.
+- Preserve explicit user selections in canonical expressions; only duplicate options/groups collapse. Query-only Boolean optimizations do not change active controls.
+- Add menu-scoped standalone tag facets with validated per-request state, shared limits, scoped matching, canonical paths and pagination. Reject double-marker root standalone forms.
+- Add optional com_content article-category grouping metadata and stable group ordering; exclude category items before totals/pagination when enabled.
+- Package 5.0.0; routing 5.0.0; component 1.5.0; SmartTag Select remains 1.7.2.
+
+
 ## 4.5.1 - 2026-10-23
 
 - Moved SmartTag Pages Content Type from Options to Details, matching the placement of native Tagged Items selection fields. Storage remains `params.content_types`, preserving existing selections and routing behavior.

@@ -20,5 +20,8 @@ namespace {
         $keys[]=json_encode(array_intersect_key(['id'=>[7],'Itemid'=>141,'types'=>$types],(array)$app->registeredurlparams));
     }
     if (count(array_unique($keys))!==4) {throw new \RuntimeException('Native type filter output cache collision.');}
+    foreach (['content-types','content-category'] as $key) {
+        if ($app->registeredurlparams->{$key} !== 'STRING') {throw new \RuntimeException('Public filter missing from view cache key.');}
+    }
     echo "OK (tag view type-filter cache contract)\n";
 }

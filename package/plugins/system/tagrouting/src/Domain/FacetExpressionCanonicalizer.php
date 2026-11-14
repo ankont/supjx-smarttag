@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SuperSoft\Plugin\System\TagRouting\Domain;
 
-/** Canonical URLs for resolved exact-membership AND-of-OR expressions. */
+/** Selection-preserving canonical URLs for resolved AND-of-OR expressions. */
 final class FacetExpressionCanonicalizer
 {
     /** @param list<TagNode> $allowedNodes */
@@ -40,7 +40,7 @@ final class FacetExpressionCanonicalizer
             }
         }
         $groups = [];
-        foreach ((new TagExpressionNormalizer())->normalize($expression->tags())->groups as $group) {
+        foreach ((new TagExpressionNormalizer())->normalize($expression->tags(), true)->groups as $group) {
             $options = array_map(static fn (TagNode $tag): TagPath => $paths[$tag->id], $group->tags);
             usort($options, static fn (TagPath $a, TagPath $b): int => strcmp($a->segment(), $b->segment()));
             $groups[] = new FacetGroup($options);

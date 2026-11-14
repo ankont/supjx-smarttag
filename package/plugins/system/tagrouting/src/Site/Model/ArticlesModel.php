@@ -68,7 +68,10 @@ final class ArticlesModel extends \Joomla\Component\Content\Site\Model\ArticlesM
             }
         }
 
-        foreach ($state['groups'] as $index => $tagIds) {
+        $groups = \SuperSoft\Plugin\System\TagRouting\Domain\FacetMembership::groups(
+            $state['groups'], $scope['nodes'],
+            \SuperSoft\Plugin\System\TagRouting\Configuration\FacetSettings::fromPlugin()->includeDescendants);
+        foreach ($groups as $index => $tagIds) {
             // One EXISTS per group gives AND between groups; IN gives OR inside
             // each group. IDs were resolved server-side and revalidated on decode.
             $alias = 'tagrouting' . $index;

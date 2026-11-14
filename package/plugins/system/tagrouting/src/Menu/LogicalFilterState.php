@@ -25,7 +25,7 @@ final class LogicalFilterState
             : null;
 
         if ($serialized !== null) {
-            $groups = $serialized['groups'];
+            $groups = array_map(static fn (array $group): array => array_values(array_unique(array_column($group, 'id'))), $serialized['resolved']);
         } else {
             $rawTags = $values['filter_tag'] ?? $values['tags'] ?? $values['tag_ids'] ?? null;
 

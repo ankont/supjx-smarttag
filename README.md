@@ -1,6 +1,6 @@
 # SuperSoftJx - SmartTag
 
-A Joomla 5/6 suite for structured tag selection, deterministic hierarchical tag routing, and menu-aware tag pages. Version 4 installs three extensions:
+A Joomla 5/6 suite for structured tag selection, deterministic hierarchical tag routing, and menu-aware tag pages. Version 5 installs three extensions:
 
 - `plg_system_tagrouting`: routing, canonicalization, tag resolution, faceted filtering, public route APIs, request state, and breadcrumbs.
 - `plg_fields_tagselect`: the **SmartTag Select** custom-field type, with branch scoping, optional native Joomla-tag storage, leaf-only selection, and controlled tag creation.
@@ -303,3 +303,9 @@ The dependency-free suite covers feature isolation, compatibility defaults, conf
 Menu Details include the native multiple **Content Type** selector. Empty means all types; selected types define a separate tag-page namespace. Scoped namespaces always use their menu route; the generic `/!/` marker remains unrestricted. Results per page remains the last option, default 30, with empty = global limit and explicit valid `?limit=` taking precedence.
 
 See [content-type scope and template contract](docs/tag-content-types-4.5.0.md), including the minimal optional Catichisi patch for unboxed single-type results. The package exposes presentation metadata; the site's existing override owns its markup.
+
+Optional tag-page URL restrictions (`content-types` and `content-category`) are documented in [the public query-filter contract](docs/tag-query-filters-5.0.0.md). No template controls are required.
+
+SmartTag 5.0 adds optional taxonomy inheritance, descendant matching, standalone tag facets and article-category group metadata. See [settings, APIs, template adaptation and migration notes](docs/smarttag-5.0.0.md).
+
+Routing settings are also available under **Tags > Options > SmartTag Routing**, using the native Save button while retaining plugin-only storage. See [5.1 settings and save behavior](docs/settings-5.1.0.md).

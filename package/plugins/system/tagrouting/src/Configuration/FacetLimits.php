@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace SuperSoft\Plugin\System\TagRouting\Configuration;
 
-use Joomla\CMS\Plugin\PluginHelper;
-use Joomla\Registry\Registry;
 use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpression;
 use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpressionParser;
 use SuperSoft\Plugin\System\TagRouting\Domain\TagExpression;
@@ -38,9 +36,7 @@ final readonly class FacetLimits
 
     public static function fromPlugin(): self
     {
-        $plugin = PluginHelper::getPlugin('system', 'tagrouting');
-
-        return self::fromArray((new Registry($plugin->params ?? ''))->toArray());
+        return self::fromArray(RoutingOptions::get()->toArray());
     }
 
     /** Hierarchical paths count as one option; repeated options also count. */

@@ -44,6 +44,27 @@
                 description="COM_TAGROUTING_FIELD_LANDING_ICON_DESC"
                 showon="landing_page:virtual_root"
             />
+            <field name="group_article_categories" type="radio" layout="joomla.form.field.radio.switcher" default="0"
+                label="COM_TAGROUTING_GROUP_CATEGORIES_LABEL" description="COM_TAGROUTING_GROUP_CATEGORIES_DESC">
+                <option value="0">JNO</option><option value="1">JYES</option>
+            </field>
+            <field name="enable_tag_facets" type="radio" layout="joomla.form.field.radio.switcher" default="0"
+                label="COM_TAGROUTING_TAG_FACETS_LABEL" description="COM_TAGROUTING_TAG_FACETS_DESC">
+                <option value="0">JNO</option><option value="1">JYES</option>
+            </field>
+            <field name="tag_facet_scope" type="list" default="selected" showon="enable_tag_facets:1"
+                label="COM_TAGROUTING_TAG_SCOPE_LABEL">
+                <option value="selected">COM_TAGROUTING_TAG_SCOPE_SELECTED</option>
+                <option value="all">COM_TAGROUTING_TAG_SCOPE_ALL</option>
+            </field>
+            <field name="tag_facet_roots" type="tag" multiple="true" mode="nested" filter="int_array"
+                showon="enable_tag_facets:1[AND]tag_facet_scope:selected"
+                label="COM_TAGROUTING_TAG_ROOTS_LABEL" description="COM_TAGROUTING_TAG_ROOTS_DESC" />
+            <field name="tag_facet_descendants" type="list" default=""
+                showon="enable_tag_facets:1" label="COM_TAGROUTING_TAG_DESCENDANTS_LABEL" description="COM_TAGROUTING_TAG_DESCENDANTS_DESC">
+                <option value="">JGLOBAL_USE_GLOBAL</option>
+                <option value="1">JYES</option><option value="0">JNO</option>
+            </field>
             <field
                 name="tag_page_limit"
                 type="number"
