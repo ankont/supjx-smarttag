@@ -1,5 +1,64 @@
 # Changelog
 
+## 5.5.0 - 2026-11-15
+
+- Restore the !example hint on Custom routing marker in both Routing plugin settings and Tags Options. Routing 5.1.7.
+- Organise the frontend tag editor into native Joomla Details, Publishing and dynamic custom-field-group tabs, including ungrouped fields and excluding empty/duplicate tabs.
+- Give Save & Close, Apply and Cancel explicit plugin-owned EN/EL labels. Reveal/focus the failing field tab for client/server validation while retaining entered values. Use native tab/validation assets, with mobile accordion behaviour and component-document support.
+- Package 5.5.0; SmartTag Enhancements 1.2.0, Pages 1.6.2 and Select 1.7.2.
+
+
+## 5.4.0 - 2026-11-15
+
+- Add independent Frontend editing and Custom fields switches to SmartTag Enhancements 1.1.0, both enabled by default for existing installations. Enforce their state in editing endpoints, native field consumers, public APIs, forms and navigation.
+- Add a SmartTag Enhancements tab to Tags Options, using the general Save button and existing plugin edit permission. Values remain in the Enhancements plugin record and save transactionally with native Tags settings and Routing options.
+- Disabling custom fields retains field definitions/values and native deletion cleanup. Package 5.4.0; Routing 5.1.6, Pages 1.6.2 and Select 1.7.2.
+
+
+## 5.3.1 - 2026-11-15
+
+- Document the native frontend edit-link contract with view=tag and verify its full SEF round trip. Allow the optional return parameter to be omitted.
+- Package 5.3.1; SmartTag Enhancements 1.0.1.
+
+
+## 5.3.0 - 2026-11-15
+
+- Consolidate tag custom fields and frontend editing in SuperSoftJx - SmartTag Enhancements 1.0.0, element smarttagenhancements and namespace SmartTagEnhancements.
+- Support native com_tags tag.edit/save/apply/cancel tasks with native models, custom fields, ACL, CSRF checks, checkout and local return URLs. Preserve existing routing and tag display factories.
+- Retain the TagFields API class under the new namespace. Package 5.3.0; Routing 5.1.6, Pages 1.6.2 and Select 1.7.2.
+
+
+## 5.2.5 - 2026-11-14
+
+- Keep tag Fields and Field Groups list filters, ordering and pagination preferences separate from native article field management, preserving each list when switching contexts.
+- Add same-session regression coverage for group/search filters and page sizes. Package 5.2.5; Tag Custom Fields 1.0.5.
+
+## 5.2.4 - 2026-11-14
+
+- Rename the administrator parent menu to SupJx SmartTags.
+- Package 5.2.4; Tag Custom Fields 1.0.4.
+
+## 5.2.3 - 2026-11-14
+
+- Group Tags, Fields and Field Groups under SuperSoftJx - SmartTag, keeping Tags as a directly navigable leaf and preserving manager integrations.
+- Package 5.2.3; Tag Custom Fields 1.0.3.
+
+## 5.2.2 - 2026-11-14
+
+- Attach Tag Fields submenus before administrator integrations rewrite manager URLs, preserving navigation with SmartBrowser enabled.
+- Exercise the complete native menu preprocessing and rendering pipeline with installed system integrations. Package 5.2.2; Tag Custom Fields 1.0.2.
+
+## 5.2.1 - 2026-11-14
+
+- Move Tag Custom Fields navigation to Fields and Field Groups submenus under Components > Tags, using the native administrator menu event and ACL checks.
+- Package 5.2.1; Tag Custom Fields 1.0.1.
+
+## 5.2.0 - 2026-11-14
+
+- Add independent System - SuperSoftJx Tag Custom Fields 1.0.0, integrating native Joomla Fields/Field Groups with tags, their editor and copy lifecycle.
+- Expose native field/field-group management, tag-specific permission actions and field-type-agnostic frontend retrieval. Native Fields handles validation, value storage and deletion cleanup.
+- Existing Routing 5.1.6, component 1.6.2 and Select 1.7.2 remain unchanged. No content/template migration or automatic field creation is performed.
+
 ## 5.1.6 - 2026-11-14
 
 - Keep the four native marker switches on their own row. Show Custom marker as a separately aligned native field only when Custom is enabled, retaining its value while hidden.

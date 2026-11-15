@@ -4,3 +4,4 @@
 /build/stage/
 /build/output/
 /composer.lock
+.playwright-mcp/
