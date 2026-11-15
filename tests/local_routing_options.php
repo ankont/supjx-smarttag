@@ -84,6 +84,9 @@ try {
         ||$originalForm->getXml()->xpath('//fieldset[@name="basic"]/field[@name="routing_help"]')) {throw new RuntimeException('Help guide is not a separate always-visible plugin tab.');}
     ++$checks;
     if(!in_array('__custom__',$originalForm->getValue('accepted_markers','params'),true)) {throw new RuntimeException('Native plugin form binding lost custom selection.');}
+    if(!str_contains($form->getField('smarttag_custom_marker')->input,'placeholder="!example"')
+        ||!str_contains($originalForm->getField('custom_marker','params')->input,'placeholder="!example"')) {throw new RuntimeException('Custom marker hint missing in Tags Options or plugin.');}
+    ++$checks;
     $ownFiltered=$originalForm->filter(['params'=>['enable_hierarchical'=>1,'show_breadcrumb_marker'=>1,'accepted_markers'=>['!tag'],'enable_custom_marker'=>1,'breadcrumb_marker'=>'']]);
     $ownSubject=(object)['type'=>'plugin','element'=>'tagrouting','folder'=>'system','params'=>(new \Joomla\Registry\Registry($ownFiltered['params']))->toString()];
     $plugin->onExtensionBeforeSave(new \Joomla\Event\Event('onExtensionBeforeSave',['context'=>'com_plugins.plugin','subject'=>$ownSubject]));

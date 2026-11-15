@@ -5,7 +5,7 @@
     <creationDate>2026-09</creationDate>
     <copyright>© 2026 SuperSoft — Kontarinis Andreas</copyright>
     <license>GNU General Public License version 2 or later</license>
-    <version>5.1.6</version>
+    <version>5.1.7</version>
     <description>PLG_SYSTEM_TAGROUTING_XML_DESCRIPTION</description>
     <namespace path="src">SuperSoft\Plugin\System\TagRouting</namespace>
     <files>
@@ -44,7 +44,7 @@
                 <field name="facet_max_bytes" type="number" default="1024" min="1" max="2048" filter="integer" showon="enable_faceted:1[OR]enable_hierarchical:1" label="PLG_SYSTEM_TAGROUTING_MAX_BYTES_LABEL" description="PLG_SYSTEM_TAGROUTING_MAX_BYTES_DESC" />
                 <field name="accepted_markers" type="MarkerControls" multiple="true" showon="enable_hierarchical:1[OR]enable_faceted:1" label="PLG_SYSTEM_TAGROUTING_FIELD_ACCEPTED_MARKERS_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_ACCEPTED_MARKERS_DESC" filter="array" default="!,!tag,!filter">
                 </field>
-                <field name="custom_marker" type="text" default="" filter="raw" label="PLG_SYSTEM_TAGROUTING_FIELD_CUSTOM_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_CUSTOM_MARKER_DESC" size="12" class="input-small" showon="params.accepted_markers.custom_enabled:1" />
+                <field name="custom_marker" type="text" default="" hint="!example" filter="raw" label="PLG_SYSTEM_TAGROUTING_FIELD_CUSTOM_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_CUSTOM_MARKER_DESC" size="12" class="input-small" showon="params.accepted_markers.custom_enabled:1" />
                 <field name="canonical_marker" type="list" default="!" showon="enable_hierarchical:1[OR]enable_faceted:1" label="PLG_SYSTEM_TAGROUTING_FIELD_CANONICAL_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_CANONICAL_MARKER_DESC">
                     <option value="!">PLG_SYSTEM_TAGROUTING_MARKER_SHORT</option>
                     <option value="!tag">PLG_SYSTEM_TAGROUTING_MARKER_TAG</option>

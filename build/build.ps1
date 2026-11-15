@@ -7,6 +7,7 @@ $packageManifest = Join-Path $packageRoot 'pkg_smarttag.xml'
 $pluginRoot = Join-Path $packageRoot 'plugins\system\tagrouting'
 $fieldPluginRoot = Join-Path $packageRoot 'plugins\fields\tagselect'
 $componentRoot = Join-Path $packageRoot 'components\com_tagrouting'
+$smartTagEnhancementsRoot = Join-Path $packageRoot 'plugins\system\smarttagenhancements'
 $buildRoot = Join-Path $repoRoot 'build'
 $stageRoot = Join-Path $buildRoot 'stage'
 $outputRoot = Join-Path $buildRoot 'output'
@@ -94,6 +95,7 @@ $packageVersion = Get-ManifestVersion -Path $packageManifest
 $pluginVersion = Get-ManifestVersion -Path (Join-Path $pluginRoot 'tagrouting.xml')
 $fieldPluginVersion = Get-ManifestVersion -Path (Join-Path $fieldPluginRoot 'tagselect.xml')
 $componentVersion = Get-ManifestVersion -Path (Join-Path $componentRoot 'tagrouting.xml')
+$smartTagEnhancementsVersion = Get-ManifestVersion -Path (Join-Path $smartTagEnhancementsRoot 'smarttagenhancements.xml')
 
 Reset-Directory -Path $stageRoot
 Reset-Directory -Path $outputRoot
@@ -105,14 +107,17 @@ New-Item -ItemType Directory -Path $constituentRoot, $packageFiles | Out-Null
 $pluginZip = Join-Path $constituentRoot 'plg_system_tagrouting.zip'
 $fieldPluginZip = Join-Path $constituentRoot 'plg_fields_tagselect.zip'
 $componentZip = Join-Path $constituentRoot 'com_tagrouting.zip'
+$smartTagEnhancementsZip = Join-Path $constituentRoot 'plg_system_smarttagenhancements.zip'
 New-CompatibleZip -SourceDirectory $pluginRoot -DestinationZip $pluginZip
 New-CompatibleZip -SourceDirectory $fieldPluginRoot -DestinationZip $fieldPluginZip
 New-CompatibleZip -SourceDirectory $componentRoot -DestinationZip $componentZip
+New-CompatibleZip -SourceDirectory $smartTagEnhancementsRoot -DestinationZip $smartTagEnhancementsZip
 
 Copy-Item -LiteralPath $packageManifest -Destination $packageStage
 Copy-Item -LiteralPath $pluginZip -Destination $packageFiles
 Copy-Item -LiteralPath $fieldPluginZip -Destination $packageFiles
 Copy-Item -LiteralPath $componentZip -Destination $packageFiles
+Copy-Item -LiteralPath $smartTagEnhancementsZip -Destination $packageFiles
 
 $packageLanguage = Join-Path $packageRoot 'language'
 
@@ -123,5 +128,5 @@ if (Test-Path -LiteralPath $packageLanguage) {
 $packageZip = Join-Path $outputRoot ("pkg_smarttag_v{0}.zip" -f $packageVersion)
 New-CompatibleZip -SourceDirectory $packageStage -DestinationZip $packageZip
 
-Write-Output ("Child versions: routing={0}, tag-select={1}, context-component={2}" -f $pluginVersion, $fieldPluginVersion, $componentVersion)
+Write-Output ("Child versions: routing={0}, tag-select={1}, context-component={2}, smarttag-enhancements={3}" -f $pluginVersion, $fieldPluginVersion, $componentVersion, $smartTagEnhancementsVersion)
 Write-Output $packageZip

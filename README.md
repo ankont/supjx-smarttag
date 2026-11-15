@@ -1,12 +1,13 @@
 # SuperSoftJx - SmartTag
 
-A Joomla 5/6 suite for structured tag selection, deterministic hierarchical tag routing, and menu-aware tag pages. Version 5 installs three extensions:
+A Joomla 5/6 suite for structured tag selection, deterministic hierarchical tag routing, and menu-aware tag pages. Version 5 installs four extensions:
 
 - `plg_system_tagrouting`: routing, canonicalization, tag resolution, faceted filtering, public route APIs, request state, and breadcrumbs.
+- `plg_system_smarttagenhancements`: frontend tag editing and native Joomla Custom Fields/Field Groups for tags, with independent activation and field-type-agnostic storage/API.
 - `plg_fields_tagselect`: the **SmartTag Select** custom-field type, with branch scoping, optional native Joomla-tag storage, leaf-only selection, and controlled tag creation.
 - `com_tagrouting`: the lightweight **SupJx SmartTag Pages** menu item type used only for Joomla `Itemid`, template/Gantry, module, language, and optional canonical-base context.
 
-The three extensions are packaged together but remain operationally independent. SmartTag Select does not require the routing feature to render or save a field, and routing does not require a SmartTag Select field. The component never replaces `com_tags`, selects a tag, or renders a tag landing page. Valid standalone routes always resolve to the normal Joomla `com_tags` tag view and existing template overrides.
+The four extensions are packaged together but remain operationally independent. SmartTag Select does not require the routing feature to render or save a field, and routing does not require a SmartTag Select field. The component never replaces `com_tags`, selects a tag, or renders a tag landing page. Valid standalone routes always resolve to the normal Joomla `com_tags` tag view and existing template overrides.
 
 ## Source and package structure
 
@@ -309,3 +310,5 @@ Optional tag-page URL restrictions (`content-types` and `content-category`) are 
 SmartTag 5.0 adds optional taxonomy inheritance, descendant matching, standalone tag facets and article-category group metadata. See [settings, APIs, template adaptation and migration notes](docs/smarttag-5.0.0.md).
 
 Routing settings are also available under **Tags > Options > SmartTag Routing**, using the native Save button while retaining plugin-only storage. See [5.1 settings and save behavior](docs/settings-5.1.0.md).
+
+For native Fields/Groups on tags, enable **System - SuperSoftJx SmartTag Enhancements** and **System - Fields**. See [setup, template API and lifecycle behavior](docs/smarttag-enhancements-5.3.0.md). No existing tag-page articles or template data are migrated automatically.
