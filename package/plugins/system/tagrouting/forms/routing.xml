@@ -36,10 +36,14 @@
             <option value="!filter">PLG_SYSTEM_TAGROUTING_MARKER_FILTER</option>
             <option value="__custom__">PLG_SYSTEM_TAGROUTING_MARKER_CUSTOM</option>
         </field>
-        <field name="smarttag_show_breadcrumb_marker" type="radio" layout="joomla.form.field.radio.switcher" default="1" showon="smarttag_enable_hierarchical:1" label="PLG_SYSTEM_TAGROUTING_FIELD_SHOW_BREADCRUMB_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_SHOW_BREADCRUMB_MARKER_DESC">
+        <field name="smarttag_show_breadcrumb_marker" type="radio" layout="joomla.form.field.radio.switcher" default="1" label="PLG_SYSTEM_TAGROUTING_FIELD_SHOW_BREADCRUMB_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_SHOW_BREADCRUMB_MARKER_DESC">
             <option value="0">JNO</option>
             <option value="1">JYES</option>
         </field>
-        <field name="smarttag_breadcrumb_marker" type="text" default="" hint="#" filter="raw" showon="smarttag_enable_hierarchical:1[AND]smarttag_show_breadcrumb_marker:1" label="PLG_SYSTEM_TAGROUTING_FIELD_BREADCRUMB_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_BREADCRUMB_MARKER_DESC" />
+        <field name="smarttag_breadcrumb_marker" type="text" default="" hint="#" filter="raw" showon="smarttag_show_breadcrumb_marker:1" label="PLG_SYSTEM_TAGROUTING_FIELD_BREADCRUMB_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_BREADCRUMB_MARKER_DESC" />
+        <field name="smarttag_breadcrumb_marker_placement" type="list" default="separate" filter="cmd" showon="smarttag_show_breadcrumb_marker:1" label="PLG_SYSTEM_TAGROUTING_MARKER_PLACEMENT">
+            <option value="separate">PLG_SYSTEM_TAGROUTING_MARKER_SEPARATE</option>
+            <option value="inline">PLG_SYSTEM_TAGROUTING_MARKER_INLINE</option>
+        </field>
     </fieldset>
 </form>

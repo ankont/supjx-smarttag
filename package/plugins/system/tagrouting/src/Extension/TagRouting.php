@@ -98,7 +98,21 @@ final class TagRouting extends CMSPlugin implements SubscriberInterface, SiteRou
     {
         $subject = $event->getArgument('subject');
         if ($this->optionsSave !== null && is_object($subject)) {
-            $this->optionsSave->after((string) $event->getArgument('context'), $subject);
+            if ($this->optionsSave->after((string) $event->getArgument('context'), $subject)) {
+                // PluginHelper caches extension records separately for the site and administrator.
+                $app = $this->getApplication();
+                $factory = Factory::getContainer()->get(\Joomla\CMS\Cache\CacheControllerFactoryInterface::class);
+                foreach (array_unique([$app->get('cache_path', JPATH_CACHE), JPATH_SITE . '/cache']) as $path) {
+                    try {
+                        $factory->createCacheController('callback', [
+                            'defaultgroup' => 'com_plugins',
+                            'cachebase' => $path,
+                        ])->clean();
+                    } catch (\Joomla\CMS\Cache\Exception\CacheExceptionInterface $error) {
+                        $app->enqueueMessage($error->getMessage(), 'warning');
+                    }
+                }
+            }
         }
     }
 

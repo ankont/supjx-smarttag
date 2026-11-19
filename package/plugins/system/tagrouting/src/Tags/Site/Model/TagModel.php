@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace SuperSoft\Plugin\System\TagRouting\Tags\Site\Model;
 
 use Joomla\CMS\Factory;
+use SuperSoft\Plugin\System\TagRouting\Domain\FacetExpression;
+use SuperSoft\Plugin\System\TagRouting\Tag\StandaloneFacetResolver;
 use SuperSoft\Plugin\System\TagRouting\Routing\TagFilterRequest;
 use SuperSoft\Plugin\System\TagRouting\Tags\TagQueryFilter;
 use SuperSoft\Plugin\System\TagRouting\Routing\TagPageState;
@@ -77,6 +79,21 @@ final class TagModel extends \Joomla\Component\Tags\Site\Model\TagModel
 
     protected function getListQuery()
     {
+        $query = $this->baseListQuery();
+        $extra = TagFilterRequest::current();
+        if ($extra !== null) {
+            $app = Factory::getApplication();
+            $state = (new StandaloneFacetResolver($app, $this->getDatabase()))
+                ->resolve($extra['tag'], $extra['item'], $extra['expression'], $app->getLanguage()->getTag());
+            foreach (self::groupConditions($state['groups']) as $condition) {
+                $query->where($condition);
+            }
+        }
+        return $query;
+    }
+
+    private function baseListQuery()
+    {
         $query = parent::getListQuery();
         $db = $this->getDatabase();
         $query->where(PublicationQueryGuard::condition(
@@ -94,19 +111,6 @@ final class TagModel extends \Joomla\Component\Tags\Site\Model\TagModel
                 Factory::getApplication()->getLanguage()->getTag());
         }
 
-        $extra = TagFilterRequest::current();
-        if ($extra !== null) {
-            // Re-resolve under the current identity/language before extending SQL.
-            $extra = (new \SuperSoft\Plugin\System\TagRouting\Tag\StandaloneFacetResolver(Factory::getApplication(), $db))
-                ->resolve($extra['tag'], $extra['item'], $extra['expression'], Factory::getApplication()->getLanguage()->getTag());
-            foreach ($extra['groups'] as $index => $ids) {
-                $alias = 'supjx_extra' . $index;
-                $query->where('EXISTS (SELECT 1 FROM #__contentitem_tag_map AS ' . $alias
-                    . ' WHERE ' . $alias . '.content_item_id = m.content_item_id'
-                    . ' AND ' . $alias . '.type_alias = m.type_alias'
-                    . ' AND ' . $alias . '.tag_id IN (' . implode(',', $ids) . '))');
-            }
-        }
         if ($this->getState('supjx.group_categories')) {
             $query->where("m.type_alias <> 'com_content.category'")
                 ->leftJoin('#__content AS supjx_group_article', "m.type_alias = 'com_content.article' AND supjx_group_article.id = m.content_item_id")
@@ -121,6 +125,81 @@ final class TagModel extends \Joomla\Component\Tags\Site\Model\TagModel
             $query->order('m.content_item_id ASC');
         }
         return $query;
+    }
+
+    /** Count complete target expressions in the current standalone page context. */
+    public function getFilterCounts(array $expressions): array
+    {
+        if ($expressions === []) {
+            return [];
+        }
+
+        $app = Factory::getApplication();
+        $menu = $app->getMenu()->getActive();
+        $tag = (string) $this->getState('tag.id');
+        if (!ctype_digit($tag) || (int) $tag < 1 || $menu === null
+            || TagPageState::isUnboundMarker($app->getMenu())
+            || $app->getInput()->getCmd('option') !== 'com_tags'
+            || $app->getInput()->getCmd('view') !== 'tag') {
+            throw new \LogicException('Filter counts require the current standalone tag page.');
+        }
+
+        $db = $this->getDatabase();
+        $language = $app->getLanguage()->getTag();
+        $resolver = new StandaloneFacetResolver($app, $db);
+        $resolver->scope((int) $menu->id, $language);
+
+        $keysBySignature = [];
+        $conditions = [];
+        foreach ($expressions as $key => $expression) {
+            $expression = $expression instanceof FacetExpression ? $expression->expression() : $expression;
+            if (!is_string($expression)) {
+                throw new \InvalidArgumentException('Expected a filter expression string or FacetExpression.');
+            }
+            $groups = $expression === '' ? [] : $resolver->resolve((int) $tag, (int) $menu->id, $expression, $language)['groups'];
+            $signature = json_encode($groups, JSON_THROW_ON_ERROR);
+            $keysBySignature[$signature][] = $key;
+            $conditions[$signature] = self::groupConditions($groups);
+        }
+
+        $base = $this->baseListQuery()->clear('order');
+        $identities = $db->createQuery()
+            ->select('DISTINCT eligible.type_alias, eligible.content_item_id')
+            ->from('(' . $base . ') AS eligible');
+
+        $counts = array_fill_keys(array_keys($expressions), 0);
+        foreach (array_chunk($conditions, 32, true) as $batch) {
+            $query = $db->createQuery()->from('(' . $identities . ') AS m');
+            foreach ($base->getBounded() as $name => $binding) {
+                $query->bind($name, $binding->value, $binding->dataType, $binding->length, $binding->driverOptions);
+            }
+            foreach ($batch as $signature => $clauses) {
+                $query->select($clauses === [] ? 'COUNT(*)'
+                    : 'COUNT(CASE WHEN ' . implode(' AND ', $clauses) . ' THEN 1 END)');
+            }
+            $values = $db->setQuery($query)->loadRow();
+            foreach (array_keys($batch) as $index => $signature) {
+                foreach ($keysBySignature[$signature] as $key) {
+                    $counts[$key] = (int) $values[$index];
+                }
+            }
+        }
+
+        return $counts;
+    }
+
+    /** @param list<list<int>> $groups Validated, descendant-expanded facet groups. */
+    private static function groupConditions(array $groups): array
+    {
+        $conditions = [];
+        foreach ($groups as $index => $ids) {
+            $alias = 'supjx_extra' . $index;
+            $conditions[] = 'EXISTS (SELECT 1 FROM #__contentitem_tag_map AS ' . $alias
+                . ' WHERE ' . $alias . '.content_item_id = m.content_item_id'
+                . ' AND ' . $alias . '.type_alias = m.type_alias'
+                . ' AND ' . $alias . '.tag_id IN (' . implode(',', $ids) . '))';
+        }
+        return $conditions;
     }
 
     public function getItems()

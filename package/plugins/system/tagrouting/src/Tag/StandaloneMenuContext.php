@@ -19,6 +19,7 @@ final readonly class StandaloneMenuContext
         public bool $useMenuRouteAsCanonical,
         public bool $bindRootMarker = true,
         array $contentTypes = [],
+        public bool $canonicalWithoutTypes = false,
     ) {
         $this->contentTypes = ContentTypeScope::normalize($contentTypes);
         $this->routeSegments = array_values(array_filter(explode('/', trim($route, '/')), 'strlen'));

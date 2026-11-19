@@ -30,7 +30,7 @@ try {
     if($form->getXml()->xpath('//fieldset[@name="smarttag_routing"]/@description')) {throw new RuntimeException('Internal info banner still present.');}
     $overview=$form->getField('smarttag_routing_help')->renderField();
     if(!str_contains($overview,'alert alert-info')||str_contains($overview,'hide-aware-inline-help')
-        ||!str_contains($overview,'#attrib-howto')||str_contains($overview,'extension_id=0')||str_contains($overview,"target='_blank'")) {throw new RuntimeException('Summary is not always visible or help link does not target the plugin help tab.');}
+        ||!str_contains($overview,'#attrib-howto')||!str_contains($overview,'task=plugin.edit')||str_contains($overview,'extension_id=0')||str_contains($overview,"target='_blank'")) {throw new RuntimeException('Summary is not always visible or help link does not target the plugin help tab.');}
     ++$checks;
     $markers=$form->getField('smarttag_accepted_markers');
     if($markers->type!=='MarkerControls') {throw new RuntimeException('Compact marker controls not loaded.');}

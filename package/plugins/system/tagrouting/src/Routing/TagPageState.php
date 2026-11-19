@@ -12,10 +12,15 @@ final class TagPageState
     private static ?\WeakMap $parsedContexts = null;
 
     /** A validated marker request without a menu must not inherit a scoped home menu. */
-    public static function recordContext(object $menu, ?int $itemId): void
+    public static function recordContext(object $menu, ?int $itemId, bool $rootMarker = false): void
     {
         self::$parsedContexts ??= new \WeakMap();
-        self::$parsedContexts[$menu] = ['item' => $itemId];
+        self::$parsedContexts[$menu] = ['item' => $itemId, 'rootMarker' => $rootMarker];
+    }
+
+    public static function usesRootMarker(object $menu): bool
+    {
+        return self::$parsedContexts[$menu]['rootMarker'] ?? false;
     }
 
     public static function isUnboundMarker(object $menu): bool

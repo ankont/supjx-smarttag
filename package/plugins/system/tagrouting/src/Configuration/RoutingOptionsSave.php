@@ -51,13 +51,15 @@ final class RoutingOptionsSave
         }
     }
 
-    public function after(string $context, object $subject): void
+    public function after(string $context, object $subject): bool
     {
         if ($context === 'com_config.component' && $this->pending !== null
             && $this->pending === (int) ($subject->extension_id ?? 0)) {
             try { $this->db->transactionCommit(true); $this->pending = null; }
             catch (\Throwable $error) { $this->abort(); throw $error; }
+            return true;
         }
+        return false;
     }
 
     public function abort(): void

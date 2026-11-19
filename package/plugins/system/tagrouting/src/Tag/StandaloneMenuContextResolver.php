@@ -23,6 +23,11 @@ final class StandaloneMenuContextResolver
         return $this->selector->best($this->contexts(), $language, $types, $preferredItemId);
     }
 
+    public function findCanonicalFallback(string $language): ?StandaloneMenuContext
+    {
+        return $this->selector->fallback($this->contexts(), $language);
+    }
+
     /** @param list<string> $segments */
     public function match(array $segments, string $language): ?StandaloneMenuContext
     {
@@ -59,6 +64,7 @@ final class StandaloneMenuContextResolver
                 (bool) (int) ($params instanceof Registry ? $params->get('use_menu_route_canonical', 1) : 1),
                 (bool) (int) ($params instanceof Registry ? $params->get('bind_root_marker', 1) : 1),
                 ContentTypeScope::normalize($params instanceof Registry ? $params->get('content_types', []) : []),
+                (bool) (int) ($params instanceof Registry ? $params->get('canonical_without_types', 0) : 0),
             );
         }
 

@@ -5,7 +5,7 @@
     <creationDate>2026-09</creationDate>
     <copyright>© 2026 SuperSoft — Kontarinis Andreas</copyright>
     <license>GNU General Public License version 2 or later</license>
-    <version>5.1.7</version>
+    <version>5.4.0</version>
     <description>PLG_SYSTEM_TAGROUTING_XML_DESCRIPTION</description>
     <namespace path="src">SuperSoft\Plugin\System\TagRouting</namespace>
     <files>
@@ -51,11 +51,15 @@
                     <option value="!filter">PLG_SYSTEM_TAGROUTING_MARKER_FILTER</option>
                     <option value="__custom__">PLG_SYSTEM_TAGROUTING_MARKER_CUSTOM</option>
                 </field>
-                <field name="show_breadcrumb_marker" type="radio" layout="joomla.form.field.radio.switcher" default="1" showon="enable_hierarchical:1" label="PLG_SYSTEM_TAGROUTING_FIELD_SHOW_BREADCRUMB_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_SHOW_BREADCRUMB_MARKER_DESC">
+                <field name="show_breadcrumb_marker" type="radio" layout="joomla.form.field.radio.switcher" default="1" label="PLG_SYSTEM_TAGROUTING_FIELD_SHOW_BREADCRUMB_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_SHOW_BREADCRUMB_MARKER_DESC">
                     <option value="0">JNO</option>
                     <option value="1">JYES</option>
                 </field>
-                <field name="breadcrumb_marker" type="text" default="" hint="#" filter="raw" showon="enable_hierarchical:1[AND]show_breadcrumb_marker:1" label="PLG_SYSTEM_TAGROUTING_FIELD_BREADCRUMB_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_BREADCRUMB_MARKER_DESC" />
+                <field name="breadcrumb_marker" type="text" default="" hint="#" filter="raw" showon="show_breadcrumb_marker:1" label="PLG_SYSTEM_TAGROUTING_FIELD_BREADCRUMB_MARKER_LABEL" description="PLG_SYSTEM_TAGROUTING_FIELD_BREADCRUMB_MARKER_DESC" />
+        <field name="breadcrumb_marker_placement" type="list" default="separate" filter="cmd" showon="show_breadcrumb_marker:1" label="PLG_SYSTEM_TAGROUTING_MARKER_PLACEMENT">
+            <option value="separate">PLG_SYSTEM_TAGROUTING_MARKER_SEPARATE</option>
+            <option value="inline">PLG_SYSTEM_TAGROUTING_MARKER_INLINE</option>
+        </field>
                 <field name="enable_custom_marker" type="hidden" filter="integer" default="0" />
             </fieldset>
             <fieldset name="howto" label="PLG_SYSTEM_TAGROUTING_HELP_TAB">

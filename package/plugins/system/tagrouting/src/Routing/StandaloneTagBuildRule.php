@@ -73,6 +73,9 @@ final readonly class StandaloneTagBuildRule
         $types = ContentTypeScope::normalize(is_array($scope) ? ($scope['types'] ?? []) : []);
         $preferred = is_array($scope) ? TagPageState::id($scope['item'] ?? null) : null;
         $context = $this->menus->find($language, $types, $preferred);
+        if ($context === null && $types === [] && ($scope['fallback'] ?? false) === true) {
+            $context = $this->menus->findCanonicalFallback($language);
+        }
         // No namespace for this native type restriction: retain it as public query.
         if ($context === null && $types !== []) {
             $context = $this->menus->find($language);

@@ -24,6 +24,7 @@ final readonly class RoutingFeatures
         array $acceptedMarkers,
         public string $canonicalMarker,
         public string $breadcrumbMarker,
+        public string $breadcrumbMarkerPlacement = 'separate',
     ) {
         $this->acceptedMarkers = array_values($acceptedMarkers);
     }
@@ -67,6 +68,7 @@ final readonly class RoutingFeatures
             self::enabled($values, 'show_breadcrumb_marker', true)
                 ? self::breadcrumbMarker((string) ($values['breadcrumb_marker'] ?? self::DEFAULT_BREADCRUMB_MARKER))
                 : '',
+            ($values['breadcrumb_marker_placement'] ?? '') === 'inline' ? 'inline' : 'separate',
         );
     }
 

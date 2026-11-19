@@ -161,6 +161,52 @@ foreach ([0,1] as $descendants) {
     $checks+=3;
     $checks+=4;
 }
+$routes = \SuperSoft\Plugin\System\TagRouting\Routing\TagFilterRoute::class;
+$options = ['add' => $expression, 'remove' => '', 'parent' => $pathFor($parent), 'same-target' => $expression];
+// Compare the batch with fresh models after parsing each option URL.
+$compareCounts = static function () use ($options, $model, $routes, $tag, $app, $input, $router, $parser, &$checks): array {
+    $counts = $model([], 2, 1)->getFilterCounts($options);
+    foreach ($options as $key => $expression) {
+        \SuperSoft\Plugin\System\TagRouting\Routing\TagFilterRequest::reset($app);
+        $url = html_entity_decode($routes::get($tag, 90141, $expression, ['limit' => 1]), ENT_QUOTES);
+        $uri = new \Joomla\CMS\Uri\Uri('http://localhost:8089/' . ltrim($url, '/'));
+        $uri->setPath(preg_replace('/\.html$/', '', $uri->getPath()));
+        $parser($router, $uri);
+        foreach ($uri->getQuery(true) as $name => $value) { $input->set($name, $value); }
+        $result = $model([], 0, 1);
+        if ($counts[$key] !== $result->getTotal() || count($result->getItems()) !== min(1, $counts[$key])) {
+            throw new RuntimeException('Filter counter differs from target URL: ' . $key . ' ' . $url);
+        }
+        ++$checks;
+    }
+    return $counts;
+};
+$params->set('tag_facet_descendants', 0); $fixture->setParams($params);
+$counts = $compareCounts();
+$params->set('tag_facet_descendants', 1); $fixture->setParams($params);
+if ($compareCounts()['add'] < 1) { throw new RuntimeException('Missing nonempty combination with descendant matching.'); }
+$params->set('tag_facet_descendants', 0); $fixture->setParams($params);
+if ($counts['add'] !== 0 || $counts['remove'] < 2) {
+    throw new RuntimeException('Expected zero-result and paginated counter fixtures.');
+}
+$categoryRows = $db->setQuery('SELECT * FROM #__categories')->loadObjectList();
+$categorySchema = $db->setQuery('SHOW CREATE TABLE #__categories')->loadRow();
+$db->setQuery(preg_replace('/^CREATE TABLE /', 'CREATE TEMPORARY TABLE ', $categorySchema[1]))->execute();
+foreach ($categoryRows as $row) { $db->insertObject('#__categories', $row); }
+$ancestor = (int) $db->setQuery('SELECT parent.id FROM #__categories AS parent JOIN #__categories AS child'
+    . ' ON parent.lft < child.lft AND parent.rgt > child.rgt WHERE parent.id > 1 AND child.id IN ('
+    . implode(',', array_unique(array_map(static fn ($row) => (int) $row->supjx_category_id,
+        array_filter($groupedRows, static fn ($row) => $row->type_alias === 'com_content.article'))))
+    . ') ORDER BY parent.lft')->loadResult();
+if ($ancestor < 2) { throw new RuntimeException('Missing tagged article with a non-root parent category.'); }
+foreach (['published = 0', 'published = 1, access = 999999'] as $restriction) {
+    $db->setQuery('UPDATE #__categories SET ' . $restriction . ' WHERE id = ' . $ancestor)->execute();
+    $restricted = $compareCounts();
+    if ($restricted['remove'] >= $counts['remove']) {
+        throw new RuntimeException('Ancestor visibility did not reduce the counter.');
+    }
+}
+$db->setQuery('DROP TEMPORARY TABLE #__categories')->execute();
 foreach ([$base.'/!/unknown-filter-tag', $base.'/!/a++b', $base.'/!/'.implode('+',array_fill(0,11,$pathFor($child)))] as $invalidPath) {
     try { $uri=new \Joomla\CMS\Uri\Uri('http://localhost:8089/'.$invalidPath); $parser($router,$uri); throw new RuntimeException('Invalid tag facet route accepted: ' . $invalidPath . ''); }
     catch (\Joomla\CMS\Router\Exception\RouteNotFoundException) { ++$checks; }

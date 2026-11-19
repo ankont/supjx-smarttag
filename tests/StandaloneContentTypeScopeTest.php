@@ -31,6 +31,7 @@ namespace Joomla\CMS\Application {
     }
 }
 namespace Joomla\CMS\Router {
+    class Route { public static function _($url) { return $url; } }
     class SiteRouter { public bool $tainted = false; public function setTainted() { $this->tainted = true; } }
 }
 namespace Joomla\CMS\Router\Exception { class RouteNotFoundException extends \RuntimeException {} }
@@ -77,17 +78,25 @@ namespace {
     use SuperSoft\Plugin\System\TagRouting\Routing\{StandaloneTagPrepareBuildRule, StandaloneTagBuildRule, StandaloneTagParseRule, FacetDelimiter};
 
     $assert(ContentTypeScope::normalize(['3,2','2',0,[],null,'bad']) === [2,3], 'Native comma-separated type IDs not normalized.');
+    $tagRoute = \SuperSoft\Plugin\System\TagRouting\Routing\TagRoute::class;
+    foreach ([[null, null], [[], ''], [[2, '1', 2], ['1', '2']]] as [$types, $expected]) {
+        parse_str(parse_url($tagRoute::forTag(7, 'el-GR', 20, contentTypes: $types), PHP_URL_QUERY), $query);
+        $assert(($query['types'] ?? null) === $expected && $query['Itemid'] === '20' && $query['lang'] === 'el-GR',
+            'TagRoute failed to preserve the explicit type scope and route context.');
+    }
     $menu = new AbstractMenu();
     $make = static function ($id, $route, $types, $native = false) {
         return new class($id, $route, $types, $native) {
             public string $language = '*';
+            public bool $fallback = false;
+            public bool $canonical = true;
             public string $component;
             public array $query;
             public function __construct(public int $id, public string $route, public array $types, bool $native) {
                 $this->component = $native ? 'com_tags' : 'com_tagrouting';
                 $this->query = $native ? ['option'=>'com_tags','view'=>'tag','types'=>$types,'id'=>[7]] : ['option'=>'com_tagrouting','view'=>'tags'];
             }
-            public function getParams() { return new \Joomla\Registry\Registry(['content_types'=>$this->types]); }
+            public function getParams() { return new \Joomla\Registry\Registry(['content_types'=>$this->types, 'canonical_without_types'=>$this->fallback, 'use_menu_route_canonical'=>$this->canonical]); }
         };
     };
     $menu->items = [10=>$make(10,'tag',[]), 20=>$make(20,'article-tags',[1]), 30=>$make(30,'mixed-tags',[2,1]), 40=>$make(40,'other-articles',[1]), 50=>$make(50,'native',[3],true)];
@@ -110,7 +119,33 @@ namespace {
         return $uri;
     };
     $base = ['option'=>'com_tags','view'=>'tag','id'=>[7]];
-    foreach ([[null,[], 'tag',null], [20,[], 'article-tags',null], [40,[], 'other-articles',null], [null,['types'=>[2,1]],'mixed-tags',null], [50,[],'tag',[3]]] as [$item,$extra,$prefix,$residual]) {
+    $fallbackMenu = new AbstractMenu();
+    $fallbackMenu->items = [20=>$make(20,'article-tags',[1]), 30=>$make(30,'mixed-tags',[1,2])];
+    $fallbackMenu->items[20]->fallback = true;
+    $fallbackMenu->items[30]->fallback = true;
+    $fallbackMenu->items[30]->language = 'el-GR';
+    foreach ([
+        [[], 'mixed-tags', null],
+        [['types'=>''], '!', null],
+        [['types'=>[1]], 'article-tags', null],
+        [['types'=>[3]], '!', [3]],
+    ] as [$extra, $prefix, $residual]) {
+        $fallbackApp = new SiteApplication($fallbackMenu);
+        $uri = new Uri($base + $extra);
+        $router = new SiteRouter();
+        (new StandaloneTagPrepareBuildRule($fallbackApp))($router, $uri);
+        (new StandaloneTagBuildRule($fallbackApp, new TagHierarchyRepository(),
+            new StandaloneMenuContextResolver($fallbackMenu), new FacetDelimiter()))($router, $uri);
+        $assert($uri->path === $prefix . '/age-group/primary' && ($uri->query['types'] ?? null) === $residual,
+            'Canonical fallback changed explicit type scope or ignored language.');
+    }
+    $fallbackMenu->items[30]->canonical = false;
+    $assert((new StandaloneMenuContextResolver($fallbackMenu))->findCanonicalFallback('el-GR')->itemId === 20,
+        'Disabled canonical menu qualified for fallback.');
+    $fallbackMenu->items[20]->fallback = false;
+    $assert((new StandaloneMenuContextResolver($fallbackMenu))->findCanonicalFallback('el-GR') === null,
+        'Non opted-in menu qualified for fallback.');
+    foreach ([[null,[], 'tag',null], [20,[], 'article-tags',null], [40,[], 'other-articles',null], [40,['types'=>[1]], 'other-articles',null], [null,['types'=>[2,1]],'mixed-tags',null], [50,[],'tag',[3]]] as [$item,$extra,$prefix,$residual]) {
         $menu->active = null;
         $query = $base + $extra + ($item ? ['Itemid'=>$item] : []) + ['limitstart'=>30,'lang'=>'el-GR','format'=>'feed'];
         $uri = $buildUrl($query);

@@ -13,7 +13,7 @@ final class RoutingOptions
         'facet_scope'=>'category', 'facet_include_descendants'=>0,
         'facet_max_groups'=>10, 'facet_max_or_options'=>10, 'facet_max_options'=>15, 'facet_max_bytes'=>1024,
         'accepted_markers'=>['!','!tag','!filter'], 'custom_marker'=>'', 'canonical_marker'=>'!',
-        'show_breadcrumb_marker'=>1, 'breadcrumb_marker'=>'#',
+        'show_breadcrumb_marker'=>1, 'breadcrumb_marker'=>'#', 'breadcrumb_marker_placement'=>'separate',
     ];
 
     /** Convert submitted compact controls to the existing plugin parameter schema. */

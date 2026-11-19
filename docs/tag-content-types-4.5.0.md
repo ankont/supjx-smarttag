@@ -22,7 +22,7 @@ A scoped URL's menu configuration is authoritative: `?types=` cannot change it. 
 
 ## Consumer contract
 
-`TagRoute::forTag($tagId, $language = null, $itemId = null)` builds a fresh tag URL, without inherited offsets or category facets. By default it follows an active SmartTag namespace. Pass an explicit SmartTag Itemid to choose a different namespace, including an unrestricted one. Native tag-list links are also captured before core preprocess substitutes their Itemid.
+`TagRoute::forTag($tagId, $language = null, $itemId = null, $contentTypes = null)` builds a fresh tag URL, without inherited offsets or category facets. By default it follows an active SmartTag namespace. Pass an explicit SmartTag Itemid to choose a different namespace, including an unrestricted one. Native tag-list links are also captured before core preprocess substitutes their Itemid.
 
 Use the model's native Pagination object unchanged. Pagination retains scope, offsets, explicit limit and language. `cat-view` is added only from actual GET input, not a preference copied into merged input from the session. View-switch links may retain the current scope/URI and explicit presentation parameters; remove all `__tagrouting*` keys. When changing filters, tags or namespace, start with a fresh builder URI and omit `start`/`limitstart`.
 
@@ -64,3 +64,10 @@ php tests/FacetedRoutingContracts.php
 `tests/local_tag_type_scope.php` is CLI-only, hard-coded to the isolated local snapshot's Itemid 141 and fixture namespaces. Run inside that local container after deploying candidate sources. It writes no configuration or content; menu clones exist only in that process.
 
 Temporary candidate files in the isolated Docker volume were restored with www-data ownership and normal 755/644 permissions after verification. Installation of the built ZIP is still required to apply the package. No production/server crawl controls were changed; these changes do not provide rate limiting.
+
+Pass `contentTypes: [$articleTypeId]` to request Articles by its Joomla UCM
+type ID. The router chooses a menu with the same set of types in the requested
+language. A compatible explicit SmartTag Itemid takes preference. If no scoped
+menu matches, the route carries the type restriction in the native `types`
+query parameter. Pass `null` to inherit the existing route context or `[]`
+to request an unrestricted route explicitly.

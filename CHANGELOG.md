@@ -1,5 +1,43 @@
 # Changelog
 
+## 5.8.0 - 2026-11-19
+
+- Add an opt-in canonical menu fallback for tag links without a requested or inherited content type scope. Routing 5.4.0 and SmartTag Pages 1.7.0.
+
+## 5.7.0 - 2026-11-19
+
+- Allow TagRoute::forTag() callers to request native content type IDs and select the matching canonical menu. Routing 5.3.0.
+
+## 5.6.0 - 2026-11-19
+
+- Add a template API for batch counts of standalone tag filter destinations, using the tag page selection rules and distinct results before pagination. Routing 5.2.0.
+
+## 5.5.5 - 2026-11-19
+
+- Link the base page before the filter summary, including when the breadcrumb marker is disabled.
+- Offer separate and inline breadcrumb marker placement. Routing 5.1.12.
+
+## 5.5.4 - 2026-11-19
+
+- Link breadcrumb markers to their base page so users can return from a filtered view.
+- Package 5.5.4 and Routing 5.1.11.
+
+## 5.5.3 - 2026-11-19
+
+- Place the tag breadcrumb marker at the root marker or before the extra filters on a standalone tag page. Omit it on plain menu-alias routes.
+- Package 5.5.3 and Routing 5.1.10.
+
+## 5.5.2 - 2026-11-19
+
+- Show validated category filters in the breadcrumb when the breadcrumb marker is enabled.
+- Package 5.5.2 and Routing 5.1.9.
+
+## 5.5.1 - 2026-11-18
+
+- Refresh cached Routing settings after saving Tags Options and open Routing help through the native plugin edit task.
+- Keep routing marker switches on one row and accept 0 to inherit the Joomla list limit.
+- Routing 5.1.8 and SmartTag Pages 1.6.3.
+
 ## 5.5.0 - 2026-11-15
 
 - Restore the !example hint on Custom routing marker in both Routing plugin settings and Tags Options. Routing 5.1.7.

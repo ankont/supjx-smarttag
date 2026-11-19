@@ -148,3 +148,47 @@ These are isolated fixtures and real runtime/model/router checks, **not**
 installed-package HTTP frontend or browser verification. Install the candidate
 ZIP on local/staging and verify the administrator controls and template integration
 before release. Production, server configuration and Catichisi source are untouched.
+
+## Standalone tag filter counts
+
+On a standalone tag page with additional filters enabled on its canonical
+SmartTag Pages menu, call `$this->getModel()->getFilterCounts($targets)` from
+the tag view override. Pass an array keyed by the template's option identifiers.
+Each value is the **complete target expression** (string or `FacetExpression`)
+that you pass to `TagFilterRoute::get()`. Use an empty string to clear extra
+filters. The result uses the same keys with integer totals, including zero.
+
+Build the target expressions from the current selection and your toggle logic.
+If clicking a selected option removes it, pass the expression after removal.
+The API uses the current page's base tag, canonical menu, language, identity
+and content restrictions. Carry the current public content restrictions
+(`content-types` and `content-category`) into the URLs. Counts are for this
+context and apply regardless of the link's page size or offset.
+
+```php
+use SuperSoft\Plugin\System\TagRouting\Routing\TagFilterRoute;
+
+// These are complete expressions computed by the template's toggle logic.
+$targets = [
+    'add-secondary' => 'topics+age-group/secondary',
+    'remove-topics' => 'age-group/secondary',
+    'clear-all' => '',
+];
+$model = $this->getModel();
+$counts = $model->getFilterCounts($targets);
+$params = $model->getState('params')->get('supjx_query_filters', []);
+
+foreach ($targets as $key => $expression) {
+    $url = TagFilterRoute::get($tagId, $itemId, $expression, $params);
+    $total = $counts[$key];
+    // Render this URL and its total together.
+}
+```
+
+`$tagId` and `$itemId` are the current tag ID and active SmartTag Pages menu
+ID. An empty batch returns an empty array. Invalid or out-of-scope expressions
+throw `InvalidArgumentException`. Call this API only on the supported tag page
+context. It validates each expression with the same limits and taxonomy scope
+as incoming routes. Matching content is counted once per content type and
+content ID. Equivalent conditions share a count, and each SQL batch shares
+the same unpaginated set of eligible items.

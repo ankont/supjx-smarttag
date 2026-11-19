@@ -95,7 +95,7 @@ final readonly class StandaloneTagParseRule
             } catch (\InvalidArgumentException) { throw new RouteNotFoundException(Text::_('JERROR_PAGE_NOT_FOUND')); }
             TagFilterRequest::remember($this->app, $extraState);
         }
-        TagPageState::recordContext($this->app->getMenu(), $context?->itemId);
+        TagPageState::recordContext($this->app->getMenu(), $context?->itemId, $marker !== null);
         $query = $uri->getQuery(true);
         $tainted = !$canonicalInput || ($extraState !== null &&
             (!$extra['canonical'] || str_replace(' ', '+', implode('/', $extra['segments'])) !== $extraState['expression']));

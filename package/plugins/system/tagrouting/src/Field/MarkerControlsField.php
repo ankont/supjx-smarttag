@@ -22,7 +22,7 @@ final class MarkerControlsField extends FormField
             'custom_marker'=>$this->form->getValue($prefix . 'custom_marker', $this->group, ''),
         ]);
         $accepted = (array) ($values['accepted_markers'] ?? []);
-        $html = '<div class="d-flex flex-wrap align-items-center gap-3" id="' . $escape($this->id) . '" role="group" aria-labelledby="' . $escape($this->id . '-lbl') . '">';
+        $html = '<div class="d-flex flex-wrap align-items-center gap-2 text-nowrap" id="' . $escape($this->id) . '" role="group" aria-labelledby="' . $escape($this->id . '-lbl') . '">';
         foreach (['short'=>'!', 'tag'=>'!tag', 'filter'=>'!filter', 'custom_enabled'=>Text::_('PLG_SYSTEM_TAGROUTING_CUSTOM_TOGGLE')] as $key => $marker) {
             $acceptedValue = $key === 'custom_enabled' ? '__custom__' : $marker;
             $options = [];
@@ -34,7 +34,7 @@ final class MarkerControlsField extends FormField
                 'id'=>$this->id . '_' . $key, 'name'=>$name . '[' . $key . ']',
                 'label'=>$escape($marker), 'value'=>in_array($acceptedValue, $accepted, true) ? '1' : '0',
                 'options'=>$options, 'disabled'=>(bool) $this->disabled, 'readonly'=>(bool) $this->readonly,
-                'class'=>'', 'onchange'=>'', 'dataAttribute'=>'',
+                'class'=>'flex-shrink-0', 'onchange'=>'', 'dataAttribute'=>'',
             ]);
         }
         return $html . '</div>';

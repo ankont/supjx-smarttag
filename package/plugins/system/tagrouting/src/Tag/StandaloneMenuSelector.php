@@ -27,6 +27,19 @@ final class StandaloneMenuSelector
         return $contexts[0] ?? null;
     }
 
+    /** @param list<StandaloneMenuContext> $contexts */
+    public function fallback(array $contexts, string $language): ?StandaloneMenuContext
+    {
+        $matches = array_values(array_filter($this->forLanguage($contexts, $language),
+            static fn (StandaloneMenuContext $context): bool => $context->canonicalWithoutTypes
+                && $context->useMenuRouteAsCanonical && $context->usesMenuRoute()
+                && $context->contentTypes !== []));
+        usort($matches, static fn (StandaloneMenuContext $a, StandaloneMenuContext $b): int =>
+            [$a->language !== $language, $a->itemId] <=> [$b->language !== $language, $b->itemId]);
+
+        return $matches[0] ?? null;
+    }
+
     /**
      * A real com_tagrouting menu route is an explicit namespace boundary. The
      * longest matching route wins; parent menu component types are irrelevant.
